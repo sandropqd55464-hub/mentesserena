@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Serenê · Painel Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Playfair+Display:wght@600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07041a;--surface:#0d0820;--card:#13102a;--border:rgba(192,132,252,.15);
+  --accent:#c084fc;--accent2:#e879f9;--green:#86efac;--red:#f87171;--amber:#fbbf24;
+  --text:#fff;--muted:rgba(255,255,255,.5);--faint:rgba(255,255,255,.2);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── LOGIN ── */
+#login-screen{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,#0d0820,#1a1035,#2d1b69);
+}
+.login-box{
+  background:var(--card);border:1px solid var(--border);border-radius:20px;
+  padding:2.5rem 2rem;width:100%;max-width:360px;text-align:center;
+}
+.login-logo{font-family:'Playfair Display',serif;font-size:1.8rem;color:#fff;margin-bottom:.25rem}
+.login-logo span{color:var(--accent)}
+.login-sub{font-size:.8rem;color:var(--muted);margin-bottom:2rem}
+.login-label{display:block;text-align:left;font-size:.75rem;color:var(--muted);margin-bottom:.4rem}
+.login-input{
+  width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  border-radius:12px;padding:.75rem 1rem;color:#fff;font-size:.9rem;
+  font-family:'DM Sans',sans-serif;outline:none;margin-bottom:1rem;
+}
+.login-input:focus{border-color:rgba(192,132,252,.4)}
+.login-btn{
+  width:100%;background:linear-gradient(135deg,#7c3aed,#a855f7);
+  color:#fff;border:none;border-radius:12px;padding:.85rem;
+  font-size:.95rem;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;
+  transition:transform .15s,box-shadow .15s;
+}
+.login-btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(124,58,237,.4)}
+.login-forgot{font-size:.72rem;color:var(--accent);cursor:pointer;margin-top:.5rem;display:inline-block;background:none;border:none;font-family:'DM Sans',sans-serif;text-decoration:underline;text-underline-offset:3px}
+.login-forgot:hover{color:var(--accent2)}
+
+/* ── RECOVER SCREEN ── */
+#recover-screen{
+  min-height:100vh;display:none;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,#0d0820,#1a1035,#2d1b69);
+}
+.recover-step{display:none}
+.recover-step.active{display:block}
+.recover-info{font-size:.78rem;color:var(--muted);line-height:1.6;margin-bottom:1.25rem;text-align:left}
+.recover-success{background:rgba(134,239,172,.08);border:1px solid rgba(134,239,172,.2);border-radius:12px;padding:1rem;margin-bottom:1rem;text-align:left}
+.recover-success-title{font-size:.82rem;font-weight:500;color:var(--green);margin-bottom:.25rem}
+.recover-success-sub{font-size:.72rem;color:rgba(134,239,172,.7);line-height:1.5}
+.recover-options{display:flex;flex-direction:column;gap:8px;margin-bottom:1rem}
+.recover-opt{
+  display:flex;align-items:center;gap:10px;padding:.85rem 1rem;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
+  border-radius:12px;cursor:pointer;transition:all .2s;
+}
+.recover-opt:hover{background:rgba(192,132,252,.08);border-color:rgba(192,132,252,.3)}
+.recover-opt-icon{font-size:1.2rem;flex-shrink:0}
+.recover-opt-title{font-size:.82rem;font-weight:500;color:#fff;margin-bottom:2px}
+.recover-opt-sub{font-size:.68rem;color:var(--muted)}
+.btn-secondary{
+  width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);
+  color:var(--muted);border-radius:12px;padding:.75rem;
+  font-size:.85rem;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;margin-top:.5rem;
+}
+.btn-secondary:hover{background:rgba(255,255,255,.09);color:#fff}
+
+/* ── PDF MODAL ── */
+.pdf-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;align-items:center;justify-content:center;padding:1rem}
+.pdf-overlay.open{display:flex}
+.pdf-box{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:1.5rem;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.pdf-title{font-size:1rem;font-weight:500;color:#fff;margin-bottom:.25rem}
+.pdf-sub{font-size:.72rem;color:var(--muted);margin-bottom:1.25rem}
+.pdf-tabs{display:flex;gap:6px;margin-bottom:1.25rem}
+.pdf-tab{flex:1;padding:.6rem;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);font-size:.78rem;font-family:'DM Sans',sans-serif;cursor:pointer;text-align:center;transition:all .2s}
+.pdf-tab.active{background:rgba(192,132,252,.12);border-color:rgba(192,132,252,.3);color:var(--accent);font-weight:500}
+.pdf-section{margin-bottom:1rem}
+.pdf-section-title{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.6rem}
+.pdf-check{display:flex;align-items:center;gap:10px;padding:.55rem .75rem;border-radius:10px;cursor:pointer;transition:background .2s;user-select:none}
+.pdf-check:hover{background:rgba(255,255,255,.05)}
+.pdf-check input[type=checkbox]{width:15px;height:15px;accent-color:#c084fc;cursor:pointer;flex-shrink:0}
+.pdf-check-label{font-size:.8rem;color:rgba(255,255,255,.85)}
+.pdf-check-sub{font-size:.65rem;color:var(--muted)}
+.pdf-period{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem}
+.pdf-period-btn{padding:.55rem;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);font-size:.75rem;font-family:'DM Sans',sans-serif;cursor:pointer;text-align:center;transition:all .2s}
+.pdf-period-btn.active{background:rgba(192,132,252,.12);border-color:rgba(192,132,252,.3);color:var(--accent)}
+.pdf-actions{display:flex;gap:8px;margin-top:1.25rem}
+.pdf-btn-gen{flex:1;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border:none;border-radius:12px;padding:.8rem;font-size:.88rem;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:transform .15s}
+.pdf-btn-gen:hover{transform:translateY(-1px)}
+.pdf-btn-cancel{background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--muted);border-radius:12px;padding:.8rem 1.25rem;font-size:.88rem;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s}
+.pdf-btn-cancel:hover{color:#fff}
+
+/* ── LAYOUT ── */
+#admin{display:none}
+.topbar{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:.85rem 1.5rem;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.topbar-logo{font-family:'Playfair Display',serif;font-size:1.2rem;color:#fff}
+.topbar-logo span{color:var(--accent)}
+.admin-badge{font-size:.65rem;background:rgba(192,132,252,.15);border:1px solid rgba(192,132,252,.3);color:var(--accent);padding:3px 10px;border-radius:20px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.alert-bell{
+  position:relative;background:rgba(255,255,255,.06);border:1px solid var(--border);
+  border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:1.1rem;transition:background .2s;
+}
+.alert-bell:hover{background:rgba(255,255,255,.1)}
+.bell-count{
+  position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;
+  font-size:.6rem;font-weight:600;width:16px;height:16px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+}
+.logout-btn{font-size:.75rem;color:var(--muted);background:none;border:1px solid var(--border);padding:5px 12px;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+.logout-btn:hover{color:#fff;border-color:rgba(255,255,255,.3)}
+
+.main{padding:1.5rem;max-width:1100px;margin:0 auto}
+
+/* ── SECTION TITLE ── */
+.section-title{font-size:.7rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:.85rem;display:flex;align-items:center;gap:8px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── METRIC CARDS ── */
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:1.5rem}
+.metric-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1rem 1.1rem;position:relative;overflow:hidden}
+.metric-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.mc-green::before{background:linear-gradient(90deg,#10b981,#86efac)}
+.mc-purple::before{background:linear-gradient(90deg,#7c3aed,#c084fc)}
+.mc-amber::before{background:linear-gradient(90deg,#f59e0b,#fbbf24)}
+.mc-blue::before{background:linear-gradient(90deg,#3b82f6,#60a5fa)}
+.mc-pink::before{background:linear-gradient(90deg,#ec4899,#f472b6)}
+.mc-teal::before{background:linear-gradient(90deg,#14b8a6,#5eead4)}
+.metric-label{font-size:.68rem;color:var(--muted);margin-bottom:.4rem;letter-spacing:.2px}
+.metric-value{font-size:1.6rem;font-weight:500;color:#fff;line-height:1}
+.metric-sub{font-size:.68rem;margin-top:.35rem;display:flex;align-items:center;gap:4px}
+.metric-up{color:var(--green)}
+.metric-down{color:var(--red)}
+.metric-neutral{color:var(--muted)}
+
+/* ── CHARTS ── */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:1.5rem}
+@media(max-width:640px){.charts-grid{grid-template-columns:1fr}}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.1rem}
+.chart-title{font-size:.78rem;font-weight:500;color:#fff;margin-bottom:.2rem}
+.chart-sub{font-size:.65rem;color:var(--muted);margin-bottom:.9rem}
+.chart-wrap{position:relative;height:160px}
+
+/* ── ALERTS PANEL ── */
+.alerts-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:1.5rem}
+@media(max-width:640px){.alerts-grid{grid-template-columns:1fr}}
+.alerts-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.1rem}
+.alerts-title{font-size:.78rem;font-weight:500;color:#fff;margin-bottom:.85rem;display:flex;align-items:center;justify-content:space-between}
+.badge-count{font-size:.6rem;background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.3);color:#f87171;padding:2px 8px;border-radius:20px}
+.badge-count.green{background:rgba(134,239,172,.15);border-color:rgba(134,239,172,.3);color:var(--green)}
+.alert-item{
+  display:flex;align-items:flex-start;gap:10px;padding:.6rem 0;
+  border-bottom:1px solid rgba(255,255,255,.05);
+}
+.alert-item:last-child{border-bottom:none;padding-bottom:0}
+.alert-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.dot-red{background:#ef4444}
+.dot-green{background:#86efac}
+.dot-amber{background:#fbbf24}
+.dot-blue{background:#60a5fa}
+.alert-content{flex:1}
+.alert-msg{font-size:.78rem;color:#fff;line-height:1.4}
+.alert-meta{font-size:.65rem;color:var(--muted);margin-top:2px}
+.alert-action{font-size:.65rem;background:rgba(192,132,252,.12);border:1px solid rgba(192,132,252,.2);color:var(--accent);padding:3px 9px;border-radius:8px;cursor:pointer;white-space:nowrap;transition:background .2s;font-family:'DM Sans',sans-serif}
+.alert-action:hover{background:rgba(192,132,252,.22)}
+.empty-state{font-size:.75rem;color:var(--faint);text-align:center;padding:1.5rem 0}
+
+/* ── SUBSCRIBERS TABLE ── */
+.table-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.1rem;margin-bottom:1.5rem}
+.table-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem}
+.table-title{font-size:.78rem;font-weight:500;color:#fff}
+.table-filter{display:flex;gap:6px}
+.filter-btn{font-size:.65rem;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--muted);padding:4px 10px;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+.filter-btn.active,.filter-btn:hover{background:rgba(192,132,252,.12);border-color:rgba(192,132,252,.3);color:var(--accent)}
+table{width:100%;border-collapse:collapse;font-size:.75rem}
+th{text-align:left;color:var(--muted);font-weight:400;padding:.5rem .75rem;border-bottom:1px solid var(--border);font-size:.65rem;text-transform:uppercase;letter-spacing:.3px}
+td{padding:.6rem .75rem;border-bottom:1px solid rgba(255,255,255,.04);color:rgba(255,255,255,.85)}
+tr:last-child td{border-bottom:none}
+.status-pill{display:inline-flex;align-items:center;gap:4px;font-size:.62rem;padding:3px 8px;border-radius:20px}
+.pill-active{background:rgba(134,239,172,.12);color:var(--green)}
+.pill-trial{background:rgba(251,191,36,.12);color:var(--amber)}
+.pill-cancelled{background:rgba(248,113,113,.12);color:var(--red)}
+
+/* ── PROJECTION ── */
+.projection-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.1rem;margin-bottom:1.5rem}
+.proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:.85rem}
+.proj-item{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;padding:.8rem;text-align:center}
+.proj-label{font-size:.65rem;color:var(--muted);margin-bottom:.3rem}
+.proj-value{font-size:1.2rem;font-weight:500;color:#fff}
+.proj-sub{font-size:.62rem;color:var(--green);margin-top:.2rem}
+
+/* ── SUPPORT FORM ── */
+.support-note{font-size:.72rem;color:var(--muted);line-height:1.6;margin-bottom:.85rem}
+.support-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:500px){.support-grid{grid-template-columns:1fr}}
+.support-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  border-radius:12px;padding:.8rem;font-size:.82rem;font-weight:500;
+  font-family:'DM Sans',sans-serif;cursor:pointer;border:none;transition:transform .15s;
+  text-decoration:none;
+}
+.support-btn:hover{transform:translateY(-2px)}
+.btn-wa{background:#25d366;color:#fff}
+.btn-email{background:rgba(192,132,252,.15);border:1px solid rgba(192,132,252,.3)!important;color:var(--accent)}
+
+/* ── NEW SUB TOAST ── */
+.toast-wrap{position:fixed;bottom:1.5rem;right:1.5rem;z-index:999;display:flex;flex-direction:column;gap:8px}
+.toast{
+  background:linear-gradient(135deg,#065f46,#047857);
+  border:1px solid rgba(134,239,172,.3);border-radius:14px;
+  padding:.85rem 1.1rem;min-width:260px;max-width:320px;
+  display:flex;align-items:flex-start;gap:10px;
+  animation:toastIn .35s ease;box-shadow:0 8px 24px rgba(0,0,0,.4);
+}
+@keyframes toastIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.toast-icon{font-size:1.3rem;flex-shrink:0}
+.toast-body{flex:1}
+.toast-title{font-size:.82rem;font-weight:500;color:#fff;margin-bottom:2px}
+.toast-detail{font-size:.7rem;color:rgba(255,255,255,.7)}
+.toast-close{background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:1rem;flex-shrink:0;padding:0;line-height:1}
+
+/* ── ALERT OVERLAY ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.overlay-box{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:1.5rem;width:90%;max-width:420px;max-height:80vh;overflow-y:auto}
+.overlay-title{font-size:1rem;font-weight:500;color:#fff;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center}
+.close-btn{background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer}
+</style>
+</head>
+<body>
+
+<!-- ═══ LOGIN ═══ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">Seren<span>ê</span></div>
+    <div class="login-sub">Painel Administrativo · Acesso restrito</div>
+    <label class="login-label">Senha de acesso</label>
+    <input class="login-input" type="password" id="pwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <button class="login-btn" onclick="doLogin()">Entrar no painel</button>
+    <div class="login-error" id="login-error">Senha incorreta. Tente novamente.</div>
+    <button class="login-forgot" onclick="showRecover()">Esqueci minha senha</button>
+  </div>
+</div>
+
+<!-- ═══ RECUPERAR SENHA ═══ -->
+<div id="recover-screen">
+  <div class="login-box">
+    <div class="login-logo">Seren<span>ê</span></div>
+
+    <!-- Step 1: digitar email -->
+    <div class="recover-step active" id="rec-step1">
+      <div class="login-sub" style="margin-bottom:1rem">Recuperação de acesso</div>
+      <div class="recover-info">Digite o e-mail cadastrado como administrador. Você receberá um código de verificação.</div>
+      <label class="login-label">Seu e-mail de administrador</label>
+      <input class="login-input" type="email" id="rec-email" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')sendRecovery()"/>
+      <button class="login-btn" onclick="sendRecovery()">Enviar código →</button>
+      <button class="btn-secondary" onclick="showLogin()">← Voltar ao login</button>
+    </div>
+
+    <!-- Step 2: email enviado + opções -->
+    <div class="recover-step" id="rec-step2">
+      <div class="recover-success">
+        <div class="recover-success-title">✓ E-mail enviado com sucesso!</div>
+        <div class="recover-success-sub">Verifique sua caixa de entrada em <span id="rec-email-shown"></span>.<br>O e-mail contém sua senha atual e as opções abaixo.</div>
+      </div>
+      <div class="recover-info">O que você quer fazer?</div>
+      <div class="recover-options">
+        <div class="recover-opt" onclick="keepPassword()">
+          <div class="recover-opt-icon">🔒</div>
+          <div>
+            <div class="recover-opt-title">Manter a senha atual</div>
+            <div class="recover-opt-sub">Apenas consultei — minha senha está segura</div>
+          </div>
+        </div>
+        <div class="recover-opt" onclick="showChangeStep()">
+          <div class="recover-opt-icon">🔄</div>
+          <div>
+            <div class="recover-opt-title">Trocar a senha agora</div>
+            <div class="recover-opt-sub">Minha senha pode ter vazado — quero criar uma nova</div>
+          </div>
+        </div>
+      </div>
+      <button class="btn-secondary" onclick="showLogin()">← Voltar ao login</button>
+    </div>
+
+    <!-- Step 3: trocar senha -->
+    <div class="recover-step" id="rec-step3">
+      <div class="login-sub" style="margin-bottom:1rem">Criar nova senha</div>
+      <label class="login-label">Nova senha</label>
+      <input class="login-input" type="password" id="new-pwd1" placeholder="Mínimo 8 caracteres"/>
+      <label class="login-label">Confirmar nova senha</label>
+      <input class="login-input" type="password" id="new-pwd2" placeholder="Repita a nova senha" onkeydown="if(event.key==='Enter')confirmNewPwd()"/>
+      <div class="login-error" id="pwd-error" style="display:none;margin-bottom:.5rem"></div>
+      <button class="login-btn" onclick="confirmNewPwd()">Salvar nova senha →</button>
+      <button class="btn-secondary" onclick="showRecStep(2)">← Voltar</button>
+    </div>
+
+    <!-- Step 4: sucesso troca -->
+    <div class="recover-step" id="rec-step4">
+      <div class="recover-success" style="margin-bottom:1.25rem">
+        <div class="recover-success-title">✓ Senha alterada com sucesso!</div>
+        <div class="recover-success-sub">Sua nova senha foi salva. Faça login com ela agora.</div>
+      </div>
+      <button class="login-btn" onclick="showLogin()">Ir para o login →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ADMIN ═══ -->
+<div id="admin">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo">Seren<span>ê</span></div>
+      <span class="admin-badge">Admin</span>
+    </div>
+    <div class="topbar-right">
+      <div class="alert-bell" onclick="toggleAlerts()" title="Alertas">
+        🔔
+        <span class="bell-count" id="bell-count">3</span>
+      </div>
+      <button class="logout-btn" onclick="openPDF()" style="border-color:rgba(192,132,252,.3);color:var(--accent)">📄 Relatório</button>
+      <button class="logout-btn" onclick="doLogout()">Sair</button>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Métricas -->
+    <div class="section-title">visão geral</div>
+    <div class="metrics-grid">
+      <div class="metric-card mc-green">
+        <div class="metric-label">Assinantes ativos</div>
+        <div class="metric-value" id="m-subs">0</div>
+        <div class="metric-sub metric-up" id="m-subs-sub">↑ carregando...</div>
+      </div>
+      <div class="metric-card mc-amber">
+        <div class="metric-label">Em período trial</div>
+        <div class="metric-value" id="m-trial">0</div>
+        <div class="metric-sub metric-neutral">3 dias grátis</div>
+      </div>
+      <div class="metric-card mc-purple">
+        <div class="metric-label">Receita mensal</div>
+        <div class="metric-value" id="m-mrr">R$0</div>
+        <div class="metric-sub metric-up" id="m-mrr-sub">↑ vs mês anterior</div>
+      </div>
+      <div class="metric-card mc-blue">
+        <div class="metric-label">Visitas hoje</div>
+        <div class="metric-value" id="m-visits">—</div>
+        <div class="metric-sub metric-neutral">via Google Analytics</div>
+      </div>
+      <div class="metric-card mc-pink">
+        <div class="metric-label">Taxa de conversão</div>
+        <div class="metric-value" id="m-conv">0%</div>
+        <div class="metric-sub metric-neutral">trial → pago</div>
+      </div>
+      <div class="metric-card mc-teal">
+        <div class="metric-label">Cancelamentos</div>
+        <div class="metric-value" id="m-cancel">0</div>
+        <div class="metric-sub metric-neutral">este mês</div>
+      </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="section-title">crescimento</div>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title">Assinantes por mês</div>
+        <div class="chart-sub">Crescimento acumulado</div>
+        <div class="chart-wrap"><canvas id="chart-subs"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Receita mensal (R$)</div>
+        <div class="chart-sub">MRR projetado</div>
+        <div class="chart-wrap"><canvas id="chart-mrr"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Projeção -->
+    <div class="section-title">projeção de receita</div>
+    <div class="projection-card">
+      <div class="chart-title">Projeção baseada no crescimento atual</div>
+      <div class="proj-grid">
+        <div class="proj-item">
+          <div class="proj-label">Próximos 3 meses</div>
+          <div class="proj-value" id="proj-3m">R$0</div>
+          <div class="proj-sub" id="proj-3m-subs">0 assinantes</div>
+        </div>
+        <div class="proj-item">
+          <div class="proj-label">Próximos 6 meses</div>
+          <div class="proj-value" id="proj-6m">R$0</div>
+          <div class="proj-sub" id="proj-6m-subs">0 assinantes</div>
+        </div>
+        <div class="proj-item">
+          <div class="proj-label">Receita anual</div>
+          <div class="proj-value" id="proj-12m">R$0</div>
+          <div class="proj-sub" id="proj-12m-subs">0 assinantes</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ranking de Temas -->
+    <div class="section-title">ranking de temas mais acessados</div>
+    <div class="table-card" style="padding:1.25rem">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.1rem;flex-wrap:wrap;gap:10px">
+        <div>
+          <div class="table-title" style="font-size:.88rem">Qual assunto as pessoas mais buscam</div>
+          <div style="font-size:.67rem;color:var(--muted);margin-top:2px">Por número de sessões iniciadas · Atualiza em tempo real</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="filter-btn active" id="rank-btn-total" onclick="setRankView('total',this)">Total</button>
+          <button class="filter-btn" id="rank-btn-week" onclick="setRankView('week',this)">Semana</button>
+          <button class="filter-btn" id="rank-btn-month" onclick="setRankView('month',this)">Mês</button>
+        </div>
+      </div>
+
+      <!-- Gráfico de barras horizontal -->
+      <div style="position:relative;height:200px;margin-bottom:1.25rem">
+        <canvas id="chart-topics-rank"></canvas>
+      </div>
+
+      <!-- Ranking cards 1 a 5 -->
+      <div id="topics-rank-list" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+
+    <!-- Alertas -->
+    <div class="section-title">alertas recentes</div>
+    <div class="alerts-grid">
+      <div class="alerts-card">
+        <div class="alerts-title">
+          Novas assinaturas
+          <span class="badge-count green" id="new-subs-count">0 hoje</span>
+        </div>
+        <div id="subs-alerts-list"></div>
+      </div>
+      <div class="alerts-card">
+        <div class="alerts-title">
+          Bugs reportados
+          <span class="badge-count" id="bugs-count">0 abertos</span>
+        </div>
+        <div id="bugs-list"></div>
+      </div>
+    </div>
+
+    <!-- Assinantes -->
+    <div class="section-title">assinantes</div>
+    <div class="table-card">
+      <div class="table-header">
+        <div class="table-title">Lista de assinantes</div>
+        <div class="table-filter">
+          <button class="filter-btn active" onclick="filterSubs('all',this)">Todos</button>
+          <button class="filter-btn" onclick="filterSubs('active',this)">Ativos</button>
+          <button class="filter-btn" onclick="filterSubs('trial',this)">Trial</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table id="subs-table">
+          <thead>
+            <tr>
+              <th>Usuário</th>
+              <th>Plano</th>
+              <th>Status</th>
+              <th>Desde</th>
+              <th>Valor</th>
+            </tr>
+          </thead>
+          <tbody id="subs-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Suporte -->
+    <div class="section-title">suporte & bugs</div>
+    <div class="table-card">
+      <div class="table-title" style="margin-bottom:.5rem">Contato rápido</div>
+      <p class="support-note">Quando um usuário reportar um bug pelo app, você recebe uma notificação aqui e por WhatsApp. Você também pode acionar suporte técnico diretamente abaixo.</p>
+      <div class="support-grid">
+        <a class="support-btn btn-wa" href="https://api.whatsapp.com/send?phone=SEU_NUMERO&text=Bug+no+Seren%C3%AA%3A+" target="_blank">
+          <span>💬</span> Suporte via WhatsApp
+        </a>
+        <a class="support-btn btn-email" href="mailto:SEU@EMAIL.COM?subject=Bug Serenê" target="_blank">
+          <span>✉️</span> Suporte via E-mail
+        </a>
+      </div>
+    </div>
+
+    <!-- Calendário de Posts -->
+    <div class="section-title">calendário de postagens</div>
+    <div class="table-card" style="padding:1.1rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem;flex-wrap:wrap;gap:8px">
+        <div>
+          <div class="table-title">Calendário editorial — 30 dias</div>
+          <div style="font-size:.68rem;color:var(--muted);margin-top:2px">Programado via Buffer · Clique em um post para ver o desempenho</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:4px;font-size:.65rem;color:var(--muted)"><span style="width:8px;height:8px;border-radius:50%;background:#86efac;display:inline-block"></span>Disparado</div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:.65rem;color:var(--muted)"><span style="width:8px;height:8px;border-radius:50%;background:#c084fc;display:inline-block"></span>Agendado</div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:.65rem;color:var(--muted)"><span style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.15);display:inline-block"></span>Pendente</div>
+        </div>
+      </div>
+      <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px"></div>
+      <div style="display:flex;gap:6px;margin-top:.85rem;flex-wrap:wrap" id="cal-legend">
+        <span style="font-size:.65rem;padding:3px 10px;border-radius:20px;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);color:#a78bfa">😮‍💨 Ansiedade</span>
+        <span style="font-size:.65rem;padding:3px 10px;border-radius:20px;background:rgba(236,72,153,.15);border:1px solid rgba(236,72,153,.3);color:#f472b6">💔 Relacionamentos</span>
+        <span style="font-size:.65rem;padding:3px 10px;border-radius:20px;background:rgba(14,165,233,.15);border:1px solid rgba(14,165,233,.3);color:#38bdf8">🪞 Autoestima</span>
+        <span style="font-size:.65rem;padding:3px 10px;border-radius:20px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:#fbbf24">🔋 Burnout</span>
+        <span style="font-size:.65rem;padding:3px 10px;border-radius:20px;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);color:#34d399">🧭 Decisões</span>
+      </div>
+    </div>
+
+    <!-- Analytics de Post -->
+    <div class="section-title">desempenho por postagem</div>
+    <div class="table-card" id="post-analytics-empty">
+      <div style="text-align:center;padding:2rem;color:var(--faint);font-size:.8rem">
+        📊 Clique em um post disparado no calendário para ver o desempenho detalhado
+      </div>
+    </div>
+    <div id="post-analytics-detail" style="display:none">
+      <div class="table-card" style="margin-bottom:14px">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+          <div>
+            <div id="pa-title" class="table-title" style="font-size:.9rem;margin-bottom:3px"></div>
+            <div id="pa-meta" style="font-size:.68rem;color:var(--muted)"></div>
+          </div>
+          <button onclick="closeAnalytics()" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:5px 12px;cursor:pointer;font-size:.72rem;font-family:'DM Sans',sans-serif">✕ Fechar</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1rem">
+          <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:.8rem;text-align:center">
+            <div style="font-size:1.3rem;font-weight:500;color:#fff" id="pa-views">0</div>
+            <div style="font-size:.65rem;color:var(--muted);margin-top:3px">Visualizações</div>
+          </div>
+          <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:.8rem;text-align:center">
+            <div style="font-size:1.3rem;font-weight:500;color:#86efac" id="pa-likes">0</div>
+            <div style="font-size:.65rem;color:var(--muted);margin-top:3px">Curtidas</div>
+          </div>
+          <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:.8rem;text-align:center">
+            <div style="font-size:1.3rem;font-weight:500;color:#c084fc" id="pa-shares">0</div>
+            <div style="font-size:.65rem;color:var(--muted);margin-top:3px">Compartilhamentos</div>
+          </div>
+          <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:.8rem;text-align:center">
+            <div style="font-size:1.3rem;font-weight:500;color:#fbbf24" id="pa-clicks">0</div>
+            <div style="font-size:.65rem;color:var(--muted);margin-top:3px">Cliques no link</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div>
+            <div style="font-size:.72rem;color:var(--muted);margin-bottom:.6rem">Engajamento por hora</div>
+            <div style="position:relative;height:130px"><canvas id="chart-engagement"></canvas></div>
+          </div>
+          <div>
+            <div style="font-size:.72rem;color:var(--muted);margin-bottom:.6rem">Alcance por país</div>
+            <div id="countries-list" style="display:flex;flex-direction:column;gap:5px"></div>
+          </div>
+        </div>
+      </div>
+      <div class="table-card">
+        <div style="font-size:.78rem;font-weight:500;color:#fff;margin-bottom:.75rem">Desempenho por rede social</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px" id="network-stats"></div>
+      </div>
+    </div>
+
+    <!-- Conectar serviços -->
+    <div class="section-title">conexões externas</div>
+    <div class="table-card">
+      <div class="table-title" style="margin-bottom:.85rem">Serviços a conectar</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem .75rem;background:rgba(255,255,255,.03);border-radius:10px;border:1px solid var(--border)">
+          <div>
+            <div style="font-size:.78rem;font-weight:500;color:#fff">Google Analytics</div>
+            <div style="font-size:.65rem;color:var(--muted)">Visitas, origem do tráfego, países</div>
+          </div>
+          <span style="font-size:.65rem;background:rgba(251,191,36,.12);color:var(--amber);padding:3px 9px;border-radius:20px">Pendente</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem .75rem;background:rgba(255,255,255,.03);border-radius:10px;border:1px solid var(--border)">
+          <div>
+            <div style="font-size:.78rem;font-weight:500;color:#fff">Hotmart Webhook</div>
+            <div style="font-size:.65rem;color:var(--muted)">Alertas de nova assinatura em tempo real</div>
+          </div>
+          <span style="font-size:.65rem;background:rgba(251,191,36,.12);color:var(--amber);padding:3px 9px;border-radius:20px">Pendente</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem .75rem;background:rgba(255,255,255,.03);border-radius:10px;border:1px solid var(--border)">
+          <div>
+            <div style="font-size:.78rem;font-weight:500;color:#fff">API Anthropic</div>
+            <div style="font-size:.65rem;color:var(--muted)">Chat com IA funcionando</div>
+          </div>
+          <span style="font-size:.65rem;background:rgba(134,239,172,.12);color:var(--green);padding:3px 9px;border-radius:20px">Configurado</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem .75rem;background:rgba(255,255,255,.03);border-radius:10px;border:1px solid var(--border)">
+          <div>
+            <div style="font-size:.78rem;font-weight:500;color:#fff">Buffer (agendamento)</div>
+            <div style="font-size:.65rem;color:var(--muted)">Disparo automático Instagram, Facebook, TikTok</div>
+          </div>
+          <a href="https://buffer.com" target="_blank" style="font-size:.65rem;background:rgba(192,132,252,.12);border:1px solid rgba(192,132,252,.3);color:var(--accent);padding:3px 9px;border-radius:20px;text-decoration:none">Conectar →</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<!-- PDF Modal -->
+<div class="pdf-overlay" id="pdf-overlay" onclick="if(event.target===this)closePDF()">
+  <div class="pdf-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.25rem">
+      <div class="pdf-title">📄 Gerar relatório</div>
+      <button class="close-btn" onclick="closePDF()">×</button>
+    </div>
+    <div class="pdf-sub">Escolha o tipo e os dados que deseja incluir no relatório PDF</div>
+
+    <div class="pdf-tabs">
+      <div class="pdf-tab active" id="tab-geral" onclick="setPDFTab('geral')">Geral</div>
+      <div class="pdf-tab" id="tab-custom" onclick="setPDFTab('custom')">Personalizado</div>
+    </div>
+
+    <!-- Período -->
+    <div class="pdf-section">
+      <div class="pdf-section-title">Período</div>
+      <div class="pdf-period">
+        <div class="pdf-period-btn active" id="per-mes" onclick="setPeriod('mes',this)">Este mês</div>
+        <div class="pdf-period-btn" id="per-trim" onclick="setPeriod('trim',this)">Trimestre</div>
+        <div class="pdf-period-btn" id="per-sem" onclick="setPeriod('sem',this)">Semestre</div>
+        <div class="pdf-period-btn" id="per-ano" onclick="setPeriod('ano',this)">Ano completo</div>
+      </div>
+    </div>
+
+    <!-- Seções (visível só no personalizado) -->
+    <div class="pdf-section" id="pdf-custom-section" style="display:none">
+      <div class="pdf-section-title">Seções a incluir</div>
+      <label class="pdf-check"><input type="checkbox" id="chk-metrics" checked/><div><div class="pdf-check-label">Métricas gerais</div><div class="pdf-check-sub">Assinantes, receita, conversão</div></div></label>
+      <label class="pdf-check"><input type="checkbox" id="chk-growth" checked/><div><div class="pdf-check-label">Gráfico de crescimento</div><div class="pdf-check-sub">Evolução de assinantes e MRR</div></div></label>
+      <label class="pdf-check"><input type="checkbox" id="chk-projection"/><div><div class="pdf-check-label">Projeção de receita</div><div class="pdf-check-sub">3 meses, 6 meses, anual</div></div></label>
+      <label class="pdf-check"><input type="checkbox" id="chk-subs" checked/><div><div class="pdf-check-label">Lista de assinantes</div><div class="pdf-check-sub">Tabela completa com status</div></div></label>
+      <label class="pdf-check"><input type="checkbox" id="chk-bugs"/><div><div class="pdf-check-label">Bugs reportados</div><div class="pdf-check-sub">Histórico de suporte</div></div></label>
+      <label class="pdf-check"><input type="checkbox" id="chk-alerts"/><div><div class="pdf-check-label">Alertas de assinatura</div><div class="pdf-check-sub">Novas ativações no período</div></div></label>
+    </div>
+
+    <div class="pdf-actions">
+      <button class="pdf-btn-cancel" onclick="closePDF()">Cancelar</button>
+      <button class="pdf-btn-gen" onclick="generatePDF()">⬇ Gerar e baixar PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- Alerts overlay -->
+<div class="overlay" id="alerts-overlay" onclick="if(event.target===this)toggleAlerts()">
+  <div class="overlay-box">
+    <div class="overlay-title">
+      Todos os alertas
+      <button class="close-btn" onclick="toggleAlerts()">×</button>
+    </div>
+    <div id="overlay-alerts-list"></div>
+  </div>
+</div>
+
+<script>
+// ── CONFIGURAÇÃO ──
+const ADMIN_PASSWORD = 'serene2025'; // TROQUE ESTA SENHA
+const PRICE = 27;
+
+// ── DADOS (serão reais após integração Hotmart) ──
+// Substitua com dados reais via Hotmart API quando estiver no ar
+const MOCK_DATA = {
+  subscribers: [
+    {name:'Ana Beatriz S.',plan:'Mensal',status:'active',since:'02/05/2025',value:'R$27'},
+    {name:'Carlos M.',plan:'Mensal',status:'active',since:'01/05/2025',value:'R$27'},
+    {name:'Fernanda L.',plan:'Mensal',status:'trial',since:'08/05/2025',value:'—'},
+    {name:'Roberto A.',plan:'Mensal',status:'active',since:'28/04/2025',value:'R$27'},
+    {name:'Juliana P.',plan:'Mensal',status:'trial',since:'09/05/2025',value:'—'},
+    {name:'Marcos T.',plan:'Mensal',status:'cancelled',since:'15/04/2025',value:'—'},
+  ],
+  newSubs:[
+    {msg:'Nova assinatura ativada!',detail:'Ana Beatriz S. converteu do trial',time:'Hoje 14:32',type:'green'},
+    {msg:'Nova assinatura ativada!',detail:'Roberto A. converteu do trial',time:'Hoje 09:15',type:'green'},
+    {msg:'Trial iniciado',detail:'Juliana P. começou o período grátis',time:'Hoje 08:44',type:'blue'},
+  ],
+  bugs:[
+    {msg:'Bug reportado por usuário',detail:'"Chat não carregou no iPhone 12"',time:'Hoje 11:20',type:'red'},
+  ]
+};
+
+function doLogin(){
+  const val = document.getElementById('pwd').value;
+  const saved = localStorage.getItem('serene_admin_pwd');
+  const currentPwd = saved || ADMIN_PASSWORD;
+  if(val === currentPwd){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('admin').style.display='block';
+    initDashboard();
+  } else {
+    document.getElementById('login-error').style.display='block';
+    document.getElementById('pwd').value='';
+  }
+}
+
+function doLogout(){
+  document.getElementById('admin').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('pwd').value = '';
+}
+
+function initDashboard(){
+  const subs = MOCK_DATA.subscribers;
+  const active = subs.filter(s=>s.status==='active').length;
+  const trial = subs.filter(s=>s.status==='trial').length;
+  const cancelled = subs.filter(s=>s.status==='cancelled').length;
+  const mrr = active * PRICE;
+  const conv = active+cancelled > 0 ? Math.round((active/(active+cancelled))*100) : 0;
+
+  document.getElementById('m-subs').textContent = active;
+  document.getElementById('m-subs-sub').textContent = '↑ +'+active+' total ativos';
+  document.getElementById('m-trial').textContent = trial;
+  document.getElementById('m-mrr').textContent = 'R$'+mrr.toLocaleString('pt-BR');
+  document.getElementById('m-mrr-sub').textContent = '↑ R$'+(mrr).toLocaleString('pt-BR')+'/mês';
+  document.getElementById('m-visits').textContent = '—';
+  document.getElementById('m-conv').textContent = conv+'%';
+  document.getElementById('m-cancel').textContent = cancelled;
+
+  // Projeção (crescimento 30%/mês estimado)
+  const growth = 1.3;
+  const p3 = Math.round(active * Math.pow(growth,3));
+  const p6 = Math.round(active * Math.pow(growth,6));
+  const p12 = Math.round(active * Math.pow(growth,12));
+  document.getElementById('proj-3m').textContent = 'R$'+(p3*PRICE).toLocaleString('pt-BR');
+  document.getElementById('proj-3m-subs').textContent = p3+' assinantes';
+  document.getElementById('proj-6m').textContent = 'R$'+(p6*PRICE).toLocaleString('pt-BR');
+  document.getElementById('proj-6m-subs').textContent = p6+' assinantes';
+  document.getElementById('proj-12m').textContent = 'R$'+(p12*PRICE*12).toLocaleString('pt-BR');
+  document.getElementById('proj-12m-subs').textContent = p12+' assinantes/mês';
+
+  renderCharts(active, mrr);
+  renderAlerts();
+  renderSubsTable(subs, 'all');
+  renderTopicsRank('total');
+  buildCalendar();
+
+  // Simular toast de nova assinatura após 3s
+  setTimeout(()=>{
+    showToast('🎉','Nova assinatura!','Fernanda L. ativou o plano mensal · R$27');
+  }, 3000);
+}
+
+function renderCharts(active, mrr){
+  const months = ['Jan','Fev','Mar','Abr','Mai','Jun'];
+  const subsData = [0,0,0,1,active-1,active];
+  const mrrData = subsData.map(s=>s*PRICE);
+
+  const cfg = {
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'rgba(255,255,255,.4)',font:{size:10}}},
+      y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'rgba(255,255,255,.4)',font:{size:10}}}
+    }
+  };
+
+  new Chart(document.getElementById('chart-subs'),{
+    type:'line',
+    data:{
+      labels:months,
+      datasets:[{data:subsData,borderColor:'#c084fc',backgroundColor:'rgba(192,132,252,.1)',fill:true,tension:.4,pointBackgroundColor:'#c084fc',pointRadius:3}]
+    },
+    options:{...cfg}
+  });
+
+  new Chart(document.getElementById('chart-mrr'),{
+    type:'bar',
+    data:{
+      labels:months,
+      datasets:[{data:mrrData,backgroundColor:'rgba(134,239,172,.3)',borderColor:'#86efac',borderWidth:1,borderRadius:4}]
+    },
+    options:{...cfg}
+  });
+}
+
+function renderAlerts(){
+  const newList = document.getElementById('subs-alerts-list');
+  const bugList = document.getElementById('bugs-list');
+
+  if(MOCK_DATA.newSubs.length === 0){
+    newList.innerHTML = '<div class="empty-state">Nenhuma assinatura ainda</div>';
+  } else {
+    newList.innerHTML = MOCK_DATA.newSubs.map(a=>`
+      <div class="alert-item">
+        <div class="alert-dot dot-${a.type}"></div>
+        <div class="alert-content">
+          <div class="alert-msg">${a.msg}</div>
+          <div class="alert-meta">${a.detail} · ${a.time}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  if(MOCK_DATA.bugs.length === 0){
+    bugList.innerHTML = '<div class="empty-state">Nenhum bug reportado 🎉</div>';
+  } else {
+    bugList.innerHTML = MOCK_DATA.bugs.map(b=>`
+      <div class="alert-item">
+        <div class="alert-dot dot-${b.type}"></div>
+        <div class="alert-content">
+          <div class="alert-msg">${b.msg}</div>
+          <div class="alert-meta">${b.detail} · ${b.time}</div>
+        </div>
+        <button class="alert-action" onclick="reportBug('${b.detail}')">Resolver</button>
+      </div>`).join('');
+  }
+
+  document.getElementById('new-subs-count').textContent = MOCK_DATA.newSubs.filter(s=>s.type==='green').length+' hoje';
+  document.getElementById('bugs-count').textContent = MOCK_DATA.bugs.length+' abertos';
+  document.getElementById('bell-count').textContent = MOCK_DATA.bugs.length + MOCK_DATA.newSubs.filter(s=>s.type==='green').length;
+
+  // Overlay
+  const all = [...MOCK_DATA.newSubs, ...MOCK_DATA.bugs];
+  document.getElementById('overlay-alerts-list').innerHTML = all.map(a=>`
+    <div class="alert-item">
+      <div class="alert-dot dot-${a.type}"></div>
+      <div class="alert-content">
+        <div class="alert-msg">${a.msg}</div>
+        <div class="alert-meta">${a.detail} · ${a.time}</div>
+      </div>
+    </div>`).join('');
+}
+
+let currentFilter = 'all';
+function renderSubsTable(subs, filter){
+  currentFilter = filter;
+  const filtered = filter === 'all' ? subs : subs.filter(s=>s.status===filter);
+  const tbody = document.getElementById('subs-tbody');
+  if(filtered.length === 0){
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--faint);padding:1.5rem">Nenhum assinante neste filtro</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(s=>{
+    const pill = s.status==='active'?'pill-active':s.status==='trial'?'pill-trial':'pill-cancelled';
+    const label = s.status==='active'?'● Ativo':s.status==='trial'?'◐ Trial':'✕ Cancelado';
+    return `<tr>
+      <td>${s.name}</td>
+      <td>${s.plan}</td>
+      <td><span class="status-pill ${pill}">${label}</span></td>
+      <td>${s.since}</td>
+      <td>${s.value}</td>
+    </tr>`;
+  }).join('');
+}
+
+function filterSubs(filter, btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSubsTable(MOCK_DATA.subscribers, filter);
+}
+
+function reportBug(detail){
+  const wa = 'https://api.whatsapp.com/send?phone=SEU_NUMERO&text=Bug+Seren%C3%AA%3A+'+encodeURIComponent(detail);
+  window.open(wa,'_blank');
+}
+
+function showToast(icon, title, detail){
+  const wrap = document.getElementById('toast-wrap');
+  const id = 'toast-'+Date.now();
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.id = id;
+  el.innerHTML = `
+    <div class="toast-icon">${icon}</div>
+    <div class="toast-body">
+      <div class="toast-title">${title}</div>
+      <div class="toast-detail">${detail}</div>
+    </div>
+    <button class="toast-close" onclick="document.getElementById('${id}').remove()">×</button>`;
+  wrap.appendChild(el);
+  setTimeout(()=>{const t=document.getElementById(id);if(t)t.remove();}, 7000);
+}
+
+function toggleAlerts(){
+  const ov = document.getElementById('alerts-overlay');
+  ov.classList.toggle('open');
+}
+
+// ── RANKING DE TEMAS ──
+const TOPICS_RANK_DATA = {
+  total:[
+    {icon:'😮‍💨',label:'Ansiedade e estresse',   color:'#a78bfa',bg:'rgba(167,139,250,.25)',users:1847,pct:38,trend:'+12%'},
+    {icon:'🪞',  label:'Autoestima e insegurança',color:'#38bdf8',bg:'rgba(56,189,248,.25)', users:1124,pct:23,trend:'+8%'},
+    {icon:'💔',  label:'Relacionamentos e solidão',color:'#f472b6',bg:'rgba(244,114,182,.25)',users:982, pct:20,trend:'+5%'},
+    {icon:'🔋',  label:'Burnout emocional',        color:'#fbbf24',bg:'rgba(251,191,36,.25)', users:634, pct:13,trend:'+3%'},
+    {icon:'🧭',  label:'Decisões difíceis',         color:'#34d399',bg:'rgba(52,211,153,.25)', users:289, pct:6, trend:'+1%'},
+  ],
+  week:[
+    {icon:'😮‍💨',label:'Ansiedade e estresse',   color:'#a78bfa',bg:'rgba(167,139,250,.25)',users:312,pct:35,trend:'+18%'},
+    {icon:'🪞',  label:'Autoestima e insegurança',color:'#38bdf8',bg:'rgba(56,189,248,.25)', users:198,pct:22,trend:'+6%'},
+    {icon:'🔋',  label:'Burnout emocional',        color:'#fbbf24',bg:'rgba(251,191,36,.25)', users:187,pct:21,trend:'+22%'},
+    {icon:'💔',  label:'Relacionamentos e solidão',color:'#f472b6',bg:'rgba(244,114,182,.25)',users:145,pct:16,trend:'-2%'},
+    {icon:'🧭',  label:'Decisões difíceis',         color:'#34d399',bg:'rgba(52,211,153,.25)', users:52, pct:6, trend:'+4%'},
+  ],
+  month:[
+    {icon:'😮‍💨',label:'Ansiedade e estresse',   color:'#a78bfa',bg:'rgba(167,139,250,.25)',users:743,pct:36,trend:'+9%'},
+    {icon:'💔',  label:'Relacionamentos e solidão',color:'#f472b6',bg:'rgba(244,114,182,.25)',users:421,pct:21,trend:'+11%'},
+    {icon:'🪞',  label:'Autoestima e insegurança',color:'#38bdf8',bg:'rgba(56,189,248,.25)', users:398,pct:19,trend:'+4%'},
+    {icon:'🔋',  label:'Burnout emocional',        color:'#fbbf24',bg:'rgba(251,191,36,.25)', users:312,pct:15,trend:'+17%'},
+    {icon:'🧭',  label:'Decisões difíceis',         color:'#34d399',bg:'rgba(52,211,153,.25)', users:187,pct:9, trend:'+7%'},
+  ]
+};
+
+let topicsRankChart=null;
+
+function renderTopicsRank(view){
+  const data=TOPICS_RANK_DATA[view];
+  if(topicsRankChart) topicsRankChart.destroy();
+  topicsRankChart=new Chart(document.getElementById('chart-topics-rank'),{
+    type:'bar',
+    data:{
+      labels:data.map(d=>d.icon+' '+d.label.split(' ')[0]),
+      datasets:[{
+        data:data.map(d=>d.users),
+        backgroundColor:data.map(d=>d.bg),
+        borderColor:data.map(d=>d.color),
+        borderWidth:1.5,borderRadius:6
+      }]
+    },
+    options:{
+      indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.raw.toLocaleString('pt-BR')+' usuários'}}},
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'rgba(255,255,255,.4)',font:{size:10}}},
+        y:{grid:{display:false},ticks:{color:'rgba(255,255,255,.7)',font:{size:11}}}
+      }
+    }
+  });
+  const medals=['🥇','🥈','🥉','4º','5º'];
+  document.getElementById('topics-rank-list').innerHTML=data.map((d,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:.7rem .9rem;
+      background:${i===0?d.bg:'rgba(255,255,255,.03)'};
+      border:1px solid ${i===0?d.color:'rgba(255,255,255,.06)'};border-radius:12px">
+      <div style="font-size:1.1rem;width:28px;text-align:center;flex-shrink:0">${medals[i]}</div>
+      <div style="font-size:1.2rem;flex-shrink:0">${d.icon}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.8rem;font-weight:500;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.label}</div>
+        <div style="height:5px;background:rgba(255,255,255,.08);border-radius:3px;margin-top:5px">
+          <div style="height:100%;width:${d.pct}%;background:${d.color};border-radius:3px"></div>
+        </div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:.88rem;font-weight:500;color:#fff">${d.users.toLocaleString('pt-BR')}</div>
+        <div style="font-size:.65rem;color:${d.trend.startsWith('+')?'var(--green)':'var(--red)'}">${d.trend}</div>
+      </div>
+      <div style="font-size:.75rem;font-weight:500;color:${d.color};min-width:32px;text-align:right">${d.pct}%</div>
+    </div>`).join('');
+}
+
+function setRankView(view,btn){
+  document.querySelectorAll('#rank-btn-total,#rank-btn-week,#rank-btn-month').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTopicsRank(view);
+}
+
+// ── CALENDÁRIO DE POSTS ──
+const TOPICS_CAL = [
+  {key:'ansiedade', icon:'😮‍💨', label:'Ansiedade', color:'#a78bfa', bg:'rgba(124,58,237,.2)'},
+  {key:'relacionamentos', icon:'💔', label:'Relacionamentos', color:'#f472b6', bg:'rgba(236,72,153,.2)'},
+  {key:'autoestima', icon:'🪞', label:'Autoestima', color:'#38bdf8', bg:'rgba(14,165,233,.2)'},
+  {key:'burnout', icon:'🔋', label:'Burnout', color:'#fbbf24', bg:'rgba(245,158,11,.2)'},
+  {key:'decisoes', icon:'🧭', label:'Decisões', color:'#34d399', bg:'rgba(16,185,129,.2)'}
+];
+
+const POST_TEXTS = {
+  ansiedade:[
+    'Sua mente acelerada não define quem você é. Respira. Estamos aqui.',
+    '3 sinais de que você precisa desacelerar hoje. Você se identifica?',
+    'Ansiedade não é fraqueza — é um sinal que merece atenção. 💜',
+    'O que acontece no seu corpo quando a ansiedade bate? Entenda.',
+    'Hoje, permita-se sentir sem se cobrar. Você está bem.'
+  ],
+  relacionamentos:[
+    'Solidão em um relacionamento é real. E você não precisa ignorar isso.',
+    'Distância emocional: como reconhecer e o que fazer.',
+    'Você se sente ouvido nas suas relações? Reflita com a gente.',
+    'Relacionamentos saudáveis começam com você mesmo.',
+    'Comunicar sentimentos é difícil — mas possível. Veja como.'
+  ],
+  autoestima:[
+    'Parar de se comparar é um ato de amor próprio. Você consegue.',
+    'Sua voz importa. Seu valor não depende de aprovação.',
+    'Autocrítica demais paralisa. Como encontrar o equilíbrio?',
+    'Você falaria assim com um amigo? Então por que fala com você?',
+    'Autoestima se constrói todos os dias. Começa agora.'
+  ],
+  burnout:[
+    'Exaustão não é sinal de esforço — é sinal de alerta.',
+    'Quando foi a última vez que você descansou de verdade?',
+    'Produtividade sem descanso é autossabotagem. Cuide-se.',
+    'Burnout tem cura — mas exige que você peça ajuda.',
+    'Você não precisa se quebrar para provar seu valor.'
+  ],
+  decisoes:[
+    'Decisões difíceis ficam mais leves quando você não está sozinho.',
+    'O medo de errar paralisa mais do que o erro em si.',
+    'Como tomar decisões com clareza mesmo em momentos de crise.',
+    'Mudança de vida: quando o medo fala mais alto que o desejo.',
+    'Você não precisa decidir tudo agora. Respira primeiro.'
+  ]
+};
+
+const NETWORKS = ['Instagram','Facebook','TikTok'];
+const COUNTRIES_DATA = [
+  {flag:'🇧🇷', name:'Brasil', pct:42},
+  {flag:'🇵🇹', name:'Portugal', pct:18},
+  {flag:'🇺🇸', name:'EUA', pct:14},
+  {flag:'🇦🇷', name:'Argentina', pct:9},
+  {flag:'🇲🇽', name:'México', pct:8},
+  {flag:'🇩🇪', name:'Alemanha', pct:5},
+  {flag:'🇫🇷', name:'França', pct:4}
+];
+
+let calPosts = [];
+let engagementChart = null;
+
+function buildCalendar(){
+  const today = new Date();
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+  calPosts = [];
+
+  // Dias da semana header
+  ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].forEach(d=>{
+    const h = document.createElement('div');
+    h.style.cssText='font-size:.58rem;color:rgba(255,255,255,.3);text-align:center;padding:3px 0;text-transform:uppercase;letter-spacing:.3px';
+    h.textContent=d;
+    grid.appendChild(h);
+  });
+
+  // Gera 30 dias — 1 post por dia, cicla pelos temas
+  for(let i=0;i<30;i++){
+    const d = new Date(today);
+    d.setDate(today.getDate() + i - 7); // começa 7 dias atrás
+    const topic = TOPICS_CAL[i % TOPICS_CAL.length];
+    const textArr = POST_TEXTS[topic.key];
+    const text = textArr[Math.floor(i/5) % textArr.length];
+    const isPast = d < today;
+    const isToday = d.toDateString() === today.toDateString();
+    const status = isPast ? 'fired' : i < 14 ? 'scheduled' : 'pending';
+
+    const post = {day:d, topic, text, status,
+      views: isPast ? Math.floor(Math.random()*8000+1000) : 0,
+      likes: isPast ? Math.floor(Math.random()*600+50) : 0,
+      shares: isPast ? Math.floor(Math.random()*200+20) : 0,
+      clicks: isPast ? Math.floor(Math.random()*400+30) : 0,
+      index: i
+    };
+    calPosts.push(post);
+
+    const cell = document.createElement('div');
+    cell.style.cssText=`
+      border-radius:9px;padding:5px 4px;cursor:pointer;transition:all .2s;
+      border:1px solid ${status==='fired'?'rgba(134,239,172,.2)':status==='scheduled'?'rgba(192,132,252,.2)':'rgba(255,255,255,.06)'};
+      background:${status==='fired'?'rgba(134,239,172,.06)':status==='scheduled'?'rgba(192,132,252,.06)':'rgba(255,255,255,.02)'};
+      ${isToday?'outline:1px solid #c084fc;':''}
+    `;
+    cell.innerHTML=`
+      <div style="font-size:.55rem;color:rgba(255,255,255,.35);margin-bottom:2px">${d.getDate()}/${d.getMonth()+1}</div>
+      <div style="font-size:.85rem;text-align:center;margin:2px 0">${topic.icon}</div>
+      <div style="width:6px;height:6px;border-radius:50%;margin:2px auto 0;background:${status==='fired'?'#86efac':status==='scheduled'?'#c084fc':'rgba(255,255,255,.15)'}"></div>
+    `;
+    cell.title=`${d.getDate()}/${d.getMonth()+1} · ${topic.label} · ${status==='fired'?'Disparado':status==='scheduled'?'Agendado':'Pendente'}`;
+    if(status==='fired'){
+      cell.onclick=()=>openPostAnalytics(post);
+    }
+    cell.onmouseenter=()=>{if(status!=='pending')cell.style.transform='scale(1.05)'};
+    cell.onmouseleave=()=>{cell.style.transform='scale(1)'};
+    grid.appendChild(cell);
+  }
+}
+
+function openPostAnalytics(post){
+  document.getElementById('post-analytics-empty').style.display='none';
+  document.getElementById('post-analytics-detail').style.display='block';
+
+  const dateStr = post.day.toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+  document.getElementById('pa-title').textContent = post.topic.icon+' '+post.topic.label+' — '+post.text.substring(0,45)+'...';
+  document.getElementById('pa-meta').textContent = 'Disparado em '+dateStr+' · '+NETWORKS.join(', ');
+  document.getElementById('pa-views').textContent = post.views.toLocaleString('pt-BR');
+  document.getElementById('pa-likes').textContent = post.likes.toLocaleString('pt-BR');
+  document.getElementById('pa-shares').textContent = post.shares.toLocaleString('pt-BR');
+  document.getElementById('pa-clicks').textContent = post.clicks.toLocaleString('pt-BR');
+
+  // Gráfico de engajamento por hora
+  if(engagementChart) engagementChart.destroy();
+  const hours = Array.from({length:12},(_,i)=>(i*2)+':00');
+  const engData = hours.map((_,i)=>{
+    const peak = i===5||i===6||i===10?1:i===4||i===7||i===9?.7:.3;
+    return Math.floor((Math.random()*0.5+peak)*post.views/12);
+  });
+  engagementChart = new Chart(document.getElementById('chart-engagement'),{
+    type:'line',
+    data:{
+      labels:hours,
+      datasets:[{
+        data:engData,
+        borderColor:post.topic.color,
+        backgroundColor:post.topic.bg,
+        fill:true,tension:.4,
+        pointRadius:2,pointBackgroundColor:post.topic.color
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'rgba(255,255,255,.3)',font:{size:9}}},
+        y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'rgba(255,255,255,.3)',font:{size:9}}}
+      }
+    }
+  });
+
+  // Países
+  const cList = document.getElementById('countries-list');
+  cList.innerHTML = COUNTRIES_DATA.map(c=>`
+    <div style="display:flex;align-items:center;gap:6px">
+      <span style="font-size:.9rem">${c.flag}</span>
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px">
+          <span style="font-size:.68rem;color:rgba(255,255,255,.8)">${c.name}</span>
+          <span style="font-size:.65rem;color:var(--muted)">${c.pct}%</span>
+        </div>
+        <div style="height:4px;background:rgba(255,255,255,.08);border-radius:2px">
+          <div style="height:100%;width:${c.pct}%;background:${post.topic.color};border-radius:2px;transition:width .6s ease"></div>
+        </div>
+      </div>
+    </div>`).join('');
+
+  // Redes sociais
+  const nStats = document.getElementById('network-stats');
+  nStats.innerHTML = NETWORKS.map((net,i)=>{
+    const mult = [1,.7,.5][i];
+    const v = Math.floor(post.views*mult);
+    const l = Math.floor(post.likes*mult);
+    const s = Math.floor(post.shares*mult);
+    const icons = ['📸','👍','🎵'];
+    return `
+    <div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:.75rem;text-align:center">
+      <div style="font-size:1.1rem;margin-bottom:4px">${icons[i]}</div>
+      <div style="font-size:.78rem;font-weight:500;color:#fff;margin-bottom:6px">${net}</div>
+      <div style="font-size:.65rem;color:var(--muted)">👁 ${v.toLocaleString('pt-BR')}</div>
+      <div style="font-size:.65rem;color:var(--muted)">❤️ ${l.toLocaleString('pt-BR')}</div>
+      <div style="font-size:.65rem;color:var(--muted)">🔁 ${s.toLocaleString('pt-BR')}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('post-analytics-detail').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function closeAnalytics(){
+  document.getElementById('post-analytics-empty').style.display='block';
+  document.getElementById('post-analytics-detail').style.display='none';
+}
+// E-mail e senha do admin — configure aqui
+const ADMIN_EMAIL = 'SEU@EMAIL.COM'; // TROQUE pelo seu e-mail real
+let adminPassword = ADMIN_PASSWORD; // referência mutável
+
+function showRecover(){
+  document.getElementById('login-screen').style.display='none';
+  const rs = document.getElementById('recover-screen');
+  rs.style.display='flex';
+  showRecStep(1);
+}
+function showLogin(){
+  document.getElementById('recover-screen').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('pwd').value='';
+  document.getElementById('login-error').style.display='none';
+}
+function showRecStep(n){
+  document.querySelectorAll('.recover-step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('rec-step'+n).classList.add('active');
+}
+function sendRecovery(){
+  const email = document.getElementById('rec-email').value.trim();
+  if(!email || !email.includes('@')){
+    alert('Digite um e-mail válido.');
+    return;
+  }
+  // Simula envio — em produção, use EmailJS ou Netlify Function
+  // Para testar: abre mailto com a senha atual
+  const subject = encodeURIComponent('Serenê Admin — Recuperação de senha');
+  const body = encodeURIComponent(
+    'Olá,\n\nVocê solicitou a recuperação de senha do painel Serenê Admin.\n\n'+
+    'Sua senha atual é: ' + adminPassword + '\n\n'+
+    'Se não reconhece essa solicitação, troque sua senha imediatamente.\n\n'+
+    '— Sistema Serenê'
+  );
+  window.open('mailto:'+email+'?subject='+subject+'&body='+body,'_blank');
+  document.getElementById('rec-email-shown').textContent = email;
+  showRecStep(2);
+}
+function keepPassword(){
+  showToast('🔒','Senha mantida','Seu acesso continua com a senha atual.');
+  showLogin();
+}
+function showChangeStep(){ showRecStep(3); }
+function confirmNewPwd(){
+  const p1 = document.getElementById('new-pwd1').value;
+  const p2 = document.getElementById('new-pwd2').value;
+  const err = document.getElementById('pwd-error');
+  if(p1.length < 8){
+    err.textContent = 'A senha deve ter no mínimo 8 caracteres.';
+    err.style.display='block'; return;
+  }
+  if(p1 !== p2){
+    err.textContent = 'As senhas não coincidem.';
+    err.style.display='block'; return;
+  }
+  err.style.display='none';
+  adminPassword = p1;
+  // Salva no localStorage para persistir
+  localStorage.setItem('serene_admin_pwd', p1);
+  showRecStep(4);
+}
+
+// ── PDF ──
+let pdfTab = 'geral';
+let pdfPeriod = 'mes';
+
+function openPDF(){ document.getElementById('pdf-overlay').classList.add('open'); }
+function closePDF(){ document.getElementById('pdf-overlay').classList.remove('open'); }
+function setPDFTab(tab){
+  pdfTab = tab;
+  document.querySelectorAll('.pdf-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('pdf-custom-section').style.display = tab==='custom'?'block':'none';
+}
+function setPeriod(p, btn){
+  pdfPeriod = p;
+  document.querySelectorAll('.pdf-period-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function generatePDF(){
+  const subs = MOCK_DATA.subscribers;
+  const active = subs.filter(s=>s.status==='active').length;
+  const trial = subs.filter(s=>s.status==='trial').length;
+  const cancelled = subs.filter(s=>s.status==='cancelled').length;
+  const mrr = active * PRICE;
+  const conv = active+cancelled > 0 ? Math.round((active/(active+cancelled))*100) : 0;
+
+  const periodLabels = {mes:'Este mês',trim:'Trimestre',sem:'Semestre',ano:'Ano completo'};
+  const now = new Date().toLocaleDateString('pt-BR');
+
+  const incMetrics = pdfTab==='geral' || document.getElementById('chk-metrics').checked;
+  const incGrowth  = pdfTab==='geral' || document.getElementById('chk-growth').checked;
+  const incProj    = pdfTab==='geral' || document.getElementById('chk-projection').checked;
+  const incSubs    = pdfTab==='geral' || document.getElementById('chk-subs').checked;
+  const incBugs    = pdfTab==='geral' || document.getElementById('chk-bugs').checked;
+  const incAlerts  = pdfTab==='geral' || document.getElementById('chk-alerts').checked;
+
+  const growth = 1.3;
+  const p3 = Math.round(active * Math.pow(growth,3));
+  const p6 = Math.round(active * Math.pow(growth,6));
+  const p12 = Math.round(active * Math.pow(growth,12));
+
+  const subsRows = subs.map(s=>`
+    <tr>
+      <td style="padding:6px 10px;border-bottom:1px solid #eee">${s.name}</td>
+      <td style="padding:6px 10px;border-bottom:1px solid #eee">${s.plan}</td>
+      <td style="padding:6px 10px;border-bottom:1px solid #eee">${s.status==='active'?'Ativo':s.status==='trial'?'Trial':'Cancelado'}</td>
+      <td style="padding:6px 10px;border-bottom:1px solid #eee">${s.since}</td>
+      <td style="padding:6px 10px;border-bottom:1px solid #eee">${s.value}</td>
+    </tr>`).join('');
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"/>
+  <title>Serenê — Relatório ${periodLabels[pdfPeriod]}</title>
+  <style>
+    body{font-family:'Helvetica Neue',Arial,sans-serif;color:#1a1a2e;padding:40px;max-width:800px;margin:0 auto}
+    .header{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #7c3aed;padding-bottom:16px;margin-bottom:24px}
+    .logo{font-size:24px;font-weight:700;color:#1a1a2e}.logo span{color:#7c3aed}
+    .meta{font-size:12px;color:#666;text-align:right}
+    h2{font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#7c3aed;margin:24px 0 12px;border-bottom:1px solid #e5e7eb;padding-bottom:6px}
+    .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:8px}
+    .metric{background:#f8f4ff;border-radius:10px;padding:14px;text-align:center}
+    .metric-val{font-size:22px;font-weight:700;color:#1a1a2e}
+    .metric-lbl{font-size:11px;color:#666;margin-top:4px}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    th{background:#f3f4f6;padding:8px 10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.3px;color:#666}
+    .proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .proj-item{background:#f0fdf4;border-radius:10px;padding:12px;text-align:center}
+    .proj-val{font-size:18px;font-weight:700;color:#065f46}
+    .proj-lbl{font-size:11px;color:#666;margin-top:3px}
+    .footer{margin-top:40px;border-top:1px solid #e5e7eb;padding-top:12px;font-size:11px;color:#999;text-align:center}
+    .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600}
+    .badge-active{background:#d1fae5;color:#065f46}
+    .badge-trial{background:#fef3c7;color:#92400e}
+    .badge-cancelled{background:#fee2e2;color:#991b1b}
+  </style></head><body>
+  <div class="header">
+    <div class="logo">Seren<span>ê</span></div>
+    <div class="meta">
+      <div style="font-weight:600">Relatório ${pdfTab==='geral'?'Geral':'Personalizado'}</div>
+      <div>Período: ${periodLabels[pdfPeriod]}</div>
+      <div>Gerado em: ${now}</div>
+    </div>
+  </div>
+  ${incMetrics?`<h2>Métricas gerais</h2>
+  <div class="metrics">
+    <div class="metric"><div class="metric-val">${active}</div><div class="metric-lbl">Assinantes ativos</div></div>
+    <div class="metric"><div class="metric-val">${trial}</div><div class="metric-lbl">Em trial</div></div>
+    <div class="metric"><div class="metric-val">R$${mrr}</div><div class="metric-lbl">Receita mensal</div></div>
+    <div class="metric"><div class="metric-val">${conv}%</div><div class="metric-lbl">Taxa conversão</div></div>
+    <div class="metric"><div class="metric-val">${cancelled}</div><div class="metric-lbl">Cancelamentos</div></div>
+    <div class="metric"><div class="metric-val">R$${mrr*12}</div><div class="metric-lbl">Projeção anual atual</div></div>
+  </div>`:''}
+  ${incProj?`<h2>Projeção de receita (crescimento 30%/mês)</h2>
+  <div class="proj-grid">
+    <div class="proj-item"><div class="proj-val">R$${p3*PRICE}</div><div class="proj-lbl">Em 3 meses · ${p3} assin.</div></div>
+    <div class="proj-item"><div class="proj-val">R$${p6*PRICE}</div><div class="proj-lbl">Em 6 meses · ${p6} assin.</div></div>
+    <div class="proj-item"><div class="proj-val">R$${p12*PRICE*12}</div><div class="proj-lbl">Receita anual · ${p12} assin.</div></div>
+  </div>`:''}
+  ${incSubs?`<h2>Assinantes (${subs.length} total)</h2>
+  <table><thead><tr><th>Nome</th><th>Plano</th><th>Status</th><th>Desde</th><th>Valor</th></tr></thead>
+  <tbody>${subsRows}</tbody></table>`:''}
+  ${incAlerts?`<h2>Novas assinaturas</h2>
+  <table><thead><tr><th>Evento</th><th>Detalhe</th><th>Horário</th></tr></thead><tbody>
+  ${MOCK_DATA.newSubs.map(a=>`<tr><td style="padding:6px 10px;border-bottom:1px solid #eee">${a.msg}</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${a.detail}</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${a.time}</td></tr>`).join('')}
+  </tbody></table>`:''}
+  ${incBugs?`<h2>Bugs reportados</h2>
+  ${MOCK_DATA.bugs.length===0?'<p style="font-size:12px;color:#666">Nenhum bug reportado no período. 🎉</p>':
+  `<table><thead><tr><th>Descrição</th><th>Detalhe</th><th>Horário</th></tr></thead><tbody>
+  ${MOCK_DATA.bugs.map(b=>`<tr><td style="padding:6px 10px;border-bottom:1px solid #eee">${b.msg}</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${b.detail}</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${b.time}</td></tr>`).join('')}
+  </tbody></table>`}`:''}
+  <div class="footer">Serenê · Painel Administrativo · Relatório gerado automaticamente em ${now}</div>
+  </body></html>`;
+
+  const blob = new Blob([html], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'serene-relatorio-'+pdfPeriod+'-'+now.replace(/\//g,'-')+'.html';
+  a.click();
+  URL.revokeObjectURL(url);
+  closePDF();
+  showToast('📄','Relatório gerado!','Arquivo salvo — abra no navegador e use Ctrl+P para imprimir em PDF.');
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  // Carrega senha salva se existir
+  const saved = localStorage.getItem('serene_admin_pwd');
+  if(saved) adminPassword = saved;
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Serenê — Apoio Emocional com IA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#07041a}
+:root{
+  --brand1:#0d0820;--brand2:#1a1035;--brand3:#2d1b69;
+  --accent:#c084fc;--accent2:#e879f9;
+  --card-bg:rgba(255,255,255,.04);--card-border:rgba(255,255,255,.08);
+  --text-primary:#fff;--text-muted:rgba(255,255,255,.5);--text-faint:rgba(255,255,255,.25);
+}
+body{font-family:'DM Sans',sans-serif;color:var(--text-primary);min-height:100vh}
+.app-wrap{min-height:100vh;display:flex;flex-direction:column;background:var(--brand1)}
+@media(min-width:768px){
+  body{background:#07041a}
+  .app-wrap{max-width:520px;margin:0 auto;box-shadow:0 0 80px rgba(124,58,237,.25)}
+}
+.screen{display:none;flex-direction:column;flex:1;animation:fadeIn .35s ease}
+.screen.active{display:flex}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ══ LANG SELECTOR ══ */
+.lang-bar{
+  position:relative;z-index:11;
+  display:flex;justify-content:flex-end;align-items:center;gap:4px;
+  padding:.4rem .9rem;
+  background:rgba(10,6,24,.95);
+  border-bottom:1px solid rgba(255,255,255,.04);
+  flex-shrink:0;
+}
+.lang-btn{
+  background:none;border:1px solid transparent;color:rgba(255,255,255,.35);
+  font-size:.65rem;font-family:'DM Sans',sans-serif;font-weight:500;
+  padding:3px 7px;border-radius:6px;cursor:pointer;transition:all .18s;
+  letter-spacing:.2px;
+}
+.lang-btn:hover{color:rgba(255,255,255,.75);border-color:rgba(192,132,252,.25)}
+.lang-btn.active{color:#c084fc;border-color:rgba(192,132,252,.4);background:rgba(192,132,252,.08)}
+
+/* ══ SHARE BAR (topo fixo) ══ */
+.share-bar{
+  position:relative;z-index:10;
+  display:flex;justify-content:space-between;align-items:center;
+  gap:8px;padding:.55rem .9rem .5rem;
+  background:rgba(13,8,32,.92);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid rgba(192,132,252,.12);
+  flex-shrink:0;
+  overflow:hidden;
+}
+.share-bar::before{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(192,132,252,.4),transparent);
+}
+.share-tagline{
+  display:flex;flex-direction:column;gap:1px;
+}
+.share-tagline-top{
+  font-size:.62rem;font-weight:500;color:rgba(255,255,255,.75);letter-spacing:.2px;
+}
+.share-tagline-sub{
+  font-size:.58rem;color:rgba(192,132,252,.7);letter-spacing:.3px;
+  display:flex;align-items:center;gap:4px;
+}
+.share-tagline-sub::before{content:'🔒';font-size:.6rem}
+.share-right{display:flex;align-items:center;gap:6px}
+.share-hand{
+  font-size:1rem;
+  animation:handPoint .9s ease-in-out infinite;
+  transform-origin:right center;
+  margin-right:2px;
+}
+@keyframes handPoint{
+  0%,100%{transform:translateX(0)}
+  50%{transform:translateX(4px)}
+}
+.share-label{font-size:.6rem;color:rgba(192,132,252,.6);letter-spacing:.3px;margin-right:1px}
+.share-btn{
+  width:30px;height:30px;border-radius:50%;
+  border:1px solid rgba(192,132,252,.2);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:all .2s;background:rgba(192,132,252,.06);text-decoration:none;
+  flex-shrink:0;
+  animation:btnGlow 2.5s ease-in-out infinite;
+}
+.share-btn:nth-child(2){animation-delay:.2s}
+.share-btn:nth-child(3){animation-delay:.4s}
+.share-btn:nth-child(4){animation-delay:.6s}
+.share-btn:nth-child(5){animation-delay:.8s}
+@keyframes btnGlow{
+  0%,100%{border-color:rgba(192,132,252,.2);box-shadow:none}
+  50%{border-color:rgba(192,132,252,.55);box-shadow:0 0 8px rgba(192,132,252,.25)}
+}
+.share-btn:hover{transform:scale(1.18);border-color:rgba(192,132,252,.7);background:rgba(192,132,252,.15);box-shadow:0 0 12px rgba(192,132,252,.35)}
+.share-btn svg{width:14px;height:14px}
+
+/* ══ HOME ══ */
+#home{
+  background:linear-gradient(180deg,#1a0a3a 0%,#0d0820 35%,#1a1035 70%,#2d1b69 100%);
+  padding:1.5rem 1.25rem 1.75rem;position:relative;overflow:hidden;align-items:center;
+}
+.orb{position:absolute;border-radius:50%;filter:blur(70px);opacity:.2;pointer-events:none}
+.orb1{width:300px;height:300px;background:#7c3aed;top:-60px;right:-100px}
+.orb2{width:220px;height:220px;background:#c084fc;bottom:0;left:-80px}
+.orb3{width:160px;height:160px;background:#e879f9;top:40%;left:50%;transform:translate(-50%,-50%)}
+/* Topo diferenciado — gradiente roxo mais intenso */
+.top-glow{
+  position:absolute;top:0;left:0;right:0;height:200px;
+  background:linear-gradient(180deg,rgba(124,58,237,.35) 0%,rgba(124,58,237,.1) 60%,transparent 100%);
+  pointer-events:none;z-index:0;
+}
+
+/* ── LOGO ── */
+.logo-wrap{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;margin-bottom:1.1rem}
+.logo-symbol-wrap{position:relative;width:88px;height:88px;margin-bottom:.6rem;display:flex;align-items:center;justify-content:center}
+
+/* Anéis pulsantes */
+.pulse-ring{
+  position:absolute;border-radius:50%;border:1.5px solid rgba(192,132,252,.5);
+  animation:pulseRing 2.4s ease-out infinite;
+}
+.pulse-ring:nth-child(1){width:88px;height:88px;animation-delay:0s}
+.pulse-ring:nth-child(2){width:110px;height:110px;animation-delay:.6s;border-color:rgba(192,132,252,.3)}
+.pulse-ring:nth-child(3){width:132px;height:132px;animation-delay:1.2s;border-color:rgba(192,132,252,.15)}
+@keyframes pulseRing{
+  0%{transform:scale(.85);opacity:.8}
+  70%{transform:scale(1);opacity:0}
+  100%{transform:scale(1);opacity:0}
+}
+
+/* Brilho externo piscante */
+.logo-glow{
+  position:absolute;width:80px;height:80px;border-radius:50%;
+  background:radial-gradient(circle,rgba(192,132,252,.35) 0%,transparent 70%);
+  animation:glowPulse 2s ease-in-out infinite;
+}
+@keyframes glowPulse{
+  0%,100%{opacity:.5;transform:scale(1)}
+  50%{opacity:1;transform:scale(1.15)}
+}
+
+.logo-symbol{width:72px;height:72px;position:relative;z-index:2}
+.logo-symbol svg{width:100%;height:100%}
+.logo-name{font-family:'Playfair Display',serif;font-size:2rem;font-weight:600;color:#fff;letter-spacing:1px;line-height:1}
+.logo-name span{color:#c084fc}
+.logo-tagline{font-size:.63rem;color:rgba(192,132,252,.6);letter-spacing:3.5px;text-transform:uppercase;margin-top:4px}
+
+/* Layout 3 colunas */
+.home-layout{
+  position:relative;z-index:1;
+  display:grid;grid-template-columns:1fr auto 1fr;
+  gap:9px;align-items:center;width:100%;margin-bottom:1rem;
+}
+.side-col{display:flex;flex-direction:column;gap:8px}
+.side-card{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;padding:.75rem .65rem;cursor:pointer;transition:all .2s;
+  position:relative;overflow:hidden;text-align:left;
+}
+.side-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:0;transition:opacity .2s;border-radius:12px 12px 0 0}
+.side-card:hover,.side-card:active{background:rgba(255,255,255,.09);transform:translateY(-2px);border-color:rgba(192,132,252,.3)}
+.side-card:hover::before,.side-card:active::before{opacity:1}
+.sc1::before{background:linear-gradient(90deg,#7c3aed,#c084fc)}
+.sc2::before{background:linear-gradient(90deg,#0ea5e9,#38bdf8)}
+.sc3::before{background:linear-gradient(90deg,#ec4899,#f472b6)}
+.sc4::before{background:linear-gradient(90deg,#f59e0b,#fbbf24)}
+.sc5::before{background:linear-gradient(90deg,#10b981,#34d399)}
+.side-icon{font-size:1.3rem;margin-bottom:3px}
+.side-name{font-size:.7rem;font-weight:500;color:#fff;line-height:1.3;margin-bottom:2px}
+.side-desc{font-size:.6rem;color:var(--text-muted);line-height:1.35}
+.home-center{display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 .15rem;min-width:0}
+.home-title{font-family:'Playfair Display',serif;font-size:clamp(1.1rem,3vw,1.5rem);font-weight:600;color:#fff;line-height:1.2;margin-bottom:.45rem}
+.home-title .grad{background:linear-gradient(90deg,#c084fc,#e879f9);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.home-title .italic{font-style:italic}
+.home-sub{font-size:.68rem;color:var(--text-muted);line-height:1.6;margin-bottom:.75rem}
+.hint{display:flex;flex-direction:column;align-items:center;gap:2px}
+.hint-text{font-size:.58rem;color:var(--text-faint);letter-spacing:.3px}
+.hint-line{width:1px;height:14px;background:rgba(255,255,255,.1)}
+.hint-arrow{color:rgba(192,132,252,.4);font-size:.8rem}
+.fifth-card{
+  position:relative;z-index:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;padding:.7rem 1rem;cursor:pointer;transition:all .2s;
+  width:100%;max-width:260px;margin:0 auto .1rem;
+  display:flex;align-items:center;gap:9px;overflow:hidden;
+}
+.fifth-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:0;transition:opacity .2s;background:linear-gradient(90deg,#10b981,#34d399)}
+.fifth-card:hover,.fifth-card:active{background:rgba(255,255,255,.09);transform:translateY(-2px)}
+.fifth-card:hover::before,.fifth-card:active::before{opacity:1}
+
+/* ── PRICING DESTAQUE ── */
+.pricing-section{
+  position:relative;z-index:1;width:100%;
+  background:linear-gradient(135deg,rgba(124,58,237,.15),rgba(232,121,249,.1));
+  border:1px solid rgba(192,132,252,.3);
+  border-radius:18px;padding:1.1rem 1.25rem;margin:.85rem 0 .9rem;
+  text-align:center;overflow:hidden;
+}
+.pricing-section::before{
+  content:'';position:absolute;top:-1px;left:20%;right:20%;height:2px;
+  background:linear-gradient(90deg,transparent,#c084fc,#e879f9,transparent);
+}
+.trial-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:linear-gradient(135deg,#7c3aed,#c084fc);
+  color:#fff;font-size:.72rem;font-weight:500;
+  padding:5px 14px;border-radius:20px;margin-bottom:.75rem;
+  animation:badgePulse 2.5s ease-in-out infinite;
+}
+@keyframes badgePulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(192,132,252,.4)}
+  50%{box-shadow:0 0 0 8px rgba(192,132,252,.0)}
+}
+.trial-badge span{font-size:.9rem}
+.pricing-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:.35rem}
+.price-free{font-size:1.5rem;font-weight:600;color:#fff}
+.price-sep{font-size:.75rem;color:var(--text-faint)}
+.price-paid{font-size:1.1rem;font-weight:500;color:#c084fc}
+.price-period{font-size:.72rem;color:var(--text-muted)}
+.pricing-note{font-size:.68rem;color:var(--text-faint);line-height:1.5}
+.pricing-bullets{display:flex;justify-content:center;gap:12px;margin:.6rem 0 .3rem;flex-wrap:wrap}
+.pricing-bullet{font-size:.65rem;color:rgba(255,255,255,.6);display:flex;align-items:center;gap:4px}
+.pricing-bullet::before{content:'✓';color:#86efac;font-weight:600}
+
+.btn-cta{
+  position:relative;z-index:1;background:linear-gradient(135deg,#7c3aed,#a855f7);
+  color:#fff;border:none;border-radius:14px;padding:.9rem 2rem;font-size:.9rem;font-weight:500;
+  font-family:'DM Sans',sans-serif;cursor:pointer;width:100%;transition:transform .15s,box-shadow .15s;
+}
+.btn-cta:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(124,58,237,.45)}
+.social-proof{position:relative;z-index:1;margin-top:.85rem;text-align:center}
+.stars{color:#fbbf24;font-size:.8rem;margin-bottom:.2rem}
+.proof-text{font-size:.65rem;color:var(--text-faint)}
+
+/* ══ TOP BAR ══ */
+.top-bar{display:flex;align-items:center;gap:10px;padding:.9rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.back-btn{background:rgba(255,255,255,.07);border:none;color:rgba(255,255,255,.65);width:36px;height:36px;border-radius:10px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s}
+.back-btn:hover{background:rgba(255,255,255,.13)}
+.bar-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:#fff}
+
+/* ══ COMPANION ══ */
+#companion{background:var(--brand1)}
+.companion-intro{padding:1.4rem 1.5rem .7rem;text-align:center}
+.companion-intro h2{font-family:'Playfair Display',serif;font-size:1.4rem;color:#fff;margin-bottom:.3rem}
+.companion-intro p{font-size:.82rem;color:var(--text-muted)}
+.companion-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:.75rem 1.25rem 1.25rem}
+.companion-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:1.4rem 1rem 1.1rem;cursor:pointer;transition:all .25s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:9px;position:relative;overflow:hidden}
+.companion-card:hover,.companion-card:active{background:rgba(255,255,255,.09);transform:translateY(-3px)}
+.companion-card.selected{border-color:#c084fc;background:rgba(192,132,252,.08)}
+.companion-avatar{width:88px;height:88px;border-radius:50%;margin:0 auto;overflow:hidden;flex-shrink:0;border:2px solid rgba(192,132,252,.2)}
+.companion-avatar svg{width:100%;height:100%}
+.companion-name{font-size:.95rem;font-weight:500;color:#fff}
+.companion-role{font-size:.72rem;color:var(--text-muted)}
+.companion-traits{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:3px}
+.trait{font-size:.6rem;background:rgba(192,132,252,.12);border:1px solid rgba(192,132,252,.2);color:#c084fc;padding:3px 8px;border-radius:20px}
+.btn-companion{background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border:none;border-radius:13px;padding:.85rem;font-size:.9rem;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;margin:0 1.25rem 1rem;transition:transform .15s,box-shadow .15s;display:block;width:calc(100% - 2.5rem)}
+.btn-companion:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(124,58,237,.4)}
+.btn-companion:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+
+/* ══ CHAT ══ */
+#chat-screen{background:var(--brand1);display:none;flex-direction:column;height:100vh}
+#chat-screen.active{display:flex}
+.chat-header{padding:.85rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.chat-avatar-mini{width:38px;height:38px;border-radius:50%;overflow:hidden;flex-shrink:0;border:1.5px solid rgba(192,132,252,.3)}
+.chat-avatar-mini svg{width:100%;height:100%}
+.chat-info{flex:1}
+.chat-companion-name{font-size:.9rem;font-weight:500;color:#fff}
+.chat-status{font-size:.68rem;color:rgba(134,239,172,.8);display:flex;align-items:center;gap:4px}
+.status-dot{width:5px;height:5px;background:#86efac;border-radius:50%;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.chat-topic-pill{background:rgba(192,132,252,.12);border:1px solid rgba(192,132,252,.2);color:#c084fc;font-size:.63rem;padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.chat-messages{flex:1;overflow-y:auto;padding:1rem 1.25rem;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+.chat-messages::-webkit-scrollbar{width:3px}
+.chat-messages::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
+.msg{max-width:82%;padding:.7rem .95rem;border-radius:16px;font-size:.87rem;line-height:1.6;animation:msgIn .25s ease}
+@keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.msg.ai{background:rgba(255,255,255,.06);color:rgba(255,255,255,.9);border-bottom-left-radius:4px;align-self:flex-start;border:1px solid rgba(255,255,255,.07)}
+.msg.user{background:linear-gradient(135deg,#6d28d9,#9333ea);color:#fff;border-bottom-right-radius:4px;align-self:flex-end}
+.msg.typing{display:flex;gap:5px;align-items:center;padding:.75rem .95rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.07);align-self:flex-start;border-radius:16px;border-bottom-left-radius:4px}
+.dot{width:6px;height:6px;background:rgba(255,255,255,.45);border-radius:50%;animation:bounce .9s infinite}
+.dot:nth-child(2){animation-delay:.15s}.dot:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+.chat-input-area{padding:.85rem 1.1rem;border-top:1px solid rgba(255,255,255,.06);display:flex;gap:9px;flex-shrink:0;background:var(--brand1)}
+.chat-input{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:13px;padding:.65rem 1rem;color:#fff;font-size:.87rem;font-family:'DM Sans',sans-serif;outline:none;resize:none;line-height:1.5;max-height:120px;transition:border-color .2s}
+.chat-input::placeholder{color:rgba(255,255,255,.28)}
+.chat-input:focus{border-color:rgba(192,132,252,.35);background:rgba(255,255,255,.08)}
+.send-btn{background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;border-radius:13px;width:44px;height:44px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;align-self:flex-end;transition:transform .15s}
+.send-btn:hover{transform:scale(1.06)}
+.send-btn svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.disclaimer-chat{text-align:center;font-size:.62rem;color:var(--text-faint);padding:.3rem .5rem 0;flex-shrink:0}
+</style>
+</head>
+<body>
+<div class="app-wrap">
+
+<!-- ═══ SHARE BAR ═══ -->
+<div class="lang-bar">
+  <button class="lang-btn active" onclick="setLang('pt')">🇧🇷 PT</button>
+  <button class="lang-btn" onclick="setLang('en')">🇺🇸 EN</button>
+  <button class="lang-btn" onclick="setLang('es')">🇪🇸 ES</button>
+  <button class="lang-btn" onclick="setLang('fr')">🇫🇷 FR</button>
+  <button class="lang-btn" onclick="setLang('de')">🇩🇪 DE</button>
+</div>
+
+<div class="share-bar">
+  <div class="share-tagline">
+    <span class="share-tagline-top">Acesso rápido · Sigilo total</span>
+    <span class="share-tagline-sub">Sua privacidade protegida</span>
+  </div>
+  <div class="share-right">
+    <span class="share-hand">👉</span>
+    <span class="share-label">compartilhe</span>
+  <!-- WhatsApp -->
+  <a class="share-btn" href="#" onclick="shareApp('whatsapp');return false;" title="WhatsApp">
+    <svg viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+  </a>
+  <!-- Instagram -->
+  <a class="share-btn" href="#" onclick="shareApp('instagram');return false;" title="Instagram">
+    <svg viewBox="0 0 24 24" fill="url(#ig)"><defs><linearGradient id="ig" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#f09433"/><stop offset="25%" stop-color="#e6683c"/><stop offset="50%" stop-color="#dc2743"/><stop offset="75%" stop-color="#cc2366"/><stop offset="100%" stop-color="#bc1888"/></linearGradient></defs><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+  </a>
+  <!-- Facebook -->
+  <a class="share-btn" href="#" onclick="shareApp('facebook');return false;" title="Facebook">
+    <svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+  </a>
+  <!-- TikTok -->
+  <a class="share-btn" href="#" onclick="shareApp('tiktok');return false;" title="TikTok">
+    <svg viewBox="0 0 24 24" fill="#fff"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.75a4.85 4.85 0 01-1.01-.06z"/></svg>
+  </a>
+  </div>
+</div>
+
+<!-- ═══ HOME ═══ -->
+<div id="home" class="screen active">
+  <div class="top-glow"></div>
+  <div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div>
+
+  <!-- Logo com pulso -->
+  <div class="logo-wrap">
+    <div class="logo-symbol-wrap">
+      <div class="pulse-ring"></div>
+      <div class="pulse-ring"></div>
+      <div class="pulse-ring"></div>
+      <div class="logo-glow"></div>
+      <div class="logo-symbol">
+        <svg viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="36" cy="34" r="22" stroke="#c084fc" stroke-width="1.5" opacity="0.35"/>
+          <ellipse cx="36" cy="31" rx="15" ry="17" stroke="#c084fc" stroke-width="2" stroke-linecap="round"/>
+          <path d="M28 26 Q31 22.5 34 26" stroke="#e879f9" stroke-width="2" stroke-linecap="round"/>
+          <path d="M38 26 Q41 22.5 44 26" stroke="#e879f9" stroke-width="2" stroke-linecap="round"/>
+          <path d="M30 37 Q36 43 42 37" stroke="#c084fc" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M21 23 Q16 19.5 11 23 Q7.5 26.5 4 23" stroke="#a855f7" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+          <path d="M51 23 Q56 19.5 61 23 Q64.5 26.5 68 23" stroke="#a855f7" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+          <path d="M33 13 Q33 9.5 36 9.5 Q39 9.5 39 13 Q39 16.5 36 19.5 Q33 16.5 33 13Z" fill="#e879f9" opacity="0.9"/>
+          <circle cx="36" cy="5" r="2.5" fill="#fbbf24" opacity="0.95"/>
+          <line x1="36" y1="0" x2="36" y2="3" stroke="#fbbf24" stroke-width="1.2" opacity="0.7"/>
+          <line x1="29" y1="5" x2="32" y2="5" stroke="#fbbf24" stroke-width="1.2" opacity="0.7"/>
+          <line x1="40" y1="5" x2="43" y2="5" stroke="#fbbf24" stroke-width="1.2" opacity="0.7"/>
+        </svg>
+      </div>
+    </div>
+    <div class="logo-name">Seren<span>ê</span></div>
+    <div class="logo-tagline">Apoio emocional com IA</div>
+  </div>
+
+  <!-- Temas 3 colunas -->
+  <div class="home-layout">
+    <div class="side-col">
+      <div class="side-card sc1" onclick="selectTopic('ansiedade','😮‍💨','Ansiedade e estresse')">
+        <div class="side-icon">😮‍💨</div>
+        <div class="side-name">Ansiedade e estresse</div>
+        <div class="side-desc">Pensamentos acelerados, tensão</div>
+      </div>
+      <div class="side-card sc2" onclick="selectTopic('relacionamentos','💔','Relacionamentos')">
+        <div class="side-icon">💔</div>
+        <div class="side-name">Relacionamentos e solidão</div>
+        <div class="side-desc">Conflitos, distância, isolamento</div>
+      </div>
+    </div>
+    <div class="home-center">
+      <h1 class="home-title">Você não<br>precisa<br>carregar<br><span class="grad italic">sozinho</span></h1>
+      <p class="home-sub">Escolha um tema e converse com seu acompanhante.</p>
+      <div class="hint">
+        <span class="hint-text">toque em um tema</span>
+        <div class="hint-line"></div>
+        <div class="hint-arrow">↓</div>
+      </div>
+    </div>
+    <div class="side-col">
+      <div class="side-card sc3" onclick="selectTopic('autoestima','🪞','Autoestima')">
+        <div class="side-icon">🪞</div>
+        <div class="side-name">Autoestima e insegurança</div>
+        <div class="side-desc">Dúvidas, comparações, valor próprio</div>
+      </div>
+      <div class="side-card sc4" onclick="selectTopic('burnout','🔋','Burnout emocional')">
+        <div class="side-icon">🔋</div>
+        <div class="side-name">Burnout emocional</div>
+        <div class="side-desc">Exaustão, falta de energia, vazio</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fifth-card sc5" onclick="selectTopic('decisoes','🧭','Decisões difíceis')">
+    <span style="font-size:1.3rem">🧭</span>
+    <div><div class="side-name">Decisões difíceis</div><div class="side-desc">Dúvidas, escolhas, mudanças de vida</div></div>
+  </div>
+
+  <!-- PRICING DESTAQUE -->
+  <div class="pricing-section">
+    <div class="trial-badge"><span>🎁</span> 3 dias completamente grátis</div>
+    <div class="pricing-row">
+      <span class="price-free">R$ 0</span>
+      <span class="price-sep">nos primeiros 3 dias, depois</span>
+    </div>
+    <div class="pricing-row">
+      <span class="price-paid">R$ 27<span class="price-period">/mês</span></span>
+    </div>
+    <div class="pricing-bullets">
+      <span class="pricing-bullet">Acesso ilimitado</span>
+      <span class="pricing-bullet">Cancele quando quiser</span>
+      <span class="pricing-bullet">Sem compromisso</span>
+    </div>
+    <div class="pricing-note">Sem cobrança nos 3 dias de teste · Assina automaticamente após o período</div>
+  </div>
+
+  <button class="btn-cta" onclick="goToCheckout()">Começar grátis agora →</button>
+  <div class="social-proof">
+    <div class="stars">★★★★★</div>
+    <div class="proof-text">+4.800 pessoas já encontraram apoio aqui</div>
+  </div>
+  <div style="height:.5rem"></div>
+</div>
+
+<!-- ═══ COMPANION ═══ -->
+<div id="companion" class="screen">
+  <div class="top-bar">
+    <button class="back-btn" onclick="go('home')">←</button>
+    <span class="bar-title">Escolha seu acompanhante</span>
+  </div>
+  <div class="companion-intro">
+    <h2>Com quem você quer conversar?</h2>
+    <p>Escolha quem te deixa mais à vontade</p>
+  </div>
+  <div class="companion-grid">
+    <div class="companion-card" id="card-luna" onclick="selectCompanion('luna')">
+      <div class="companion-avatar">
+        <svg viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="45" cy="45" r="45" fill="#2d1b69"/>
+          <ellipse cx="45" cy="28" rx="22" ry="14" fill="#1a0a2e"/>
+          <path d="M23 30 Q20 50 22 65 Q26 58 28 52" fill="#1a0a2e"/>
+          <path d="M67 30 Q70 50 68 65 Q64 58 62 52" fill="#1a0a2e"/>
+          <path d="M28 55 Q26 68 30 75" stroke="#1a0a2e" stroke-width="6" fill="none" stroke-linecap="round"/>
+          <path d="M62 55 Q64 68 60 75" stroke="#1a0a2e" stroke-width="6" fill="none" stroke-linecap="round"/>
+          <ellipse cx="45" cy="48" rx="18" ry="20" fill="#f4c5a0"/>
+          <ellipse cx="38" cy="45" rx="3.5" ry="4" fill="#2d1b69"/>
+          <ellipse cx="52" cy="45" rx="3.5" ry="4" fill="#2d1b69"/>
+          <circle cx="39.5" cy="43.5" r="1.2" fill="white"/>
+          <circle cx="53.5" cy="43.5" r="1.2" fill="white"/>
+          <path d="M34 40 Q38 38 42 40" stroke="#7c4a2a" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+          <path d="M48 40 Q52 38 56 40" stroke="#7c4a2a" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+          <path d="M39 55 Q45 60 51 55" stroke="#c07850" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+          <ellipse cx="34" cy="52" rx="5" ry="3" fill="#e879f9" opacity="0.25"/>
+          <ellipse cx="56" cy="52" rx="5" ry="3" fill="#e879f9" opacity="0.25"/>
+          <path d="M27 32 Q32 22 45 20 Q58 22 63 32" fill="#1a0a2e"/>
+          <circle cx="27" cy="52" r="3" fill="#c084fc" opacity="0.9"/>
+          <circle cx="63" cy="52" r="3" fill="#c084fc" opacity="0.9"/>
+        </svg>
+      </div>
+      <div class="companion-name">Luna</div>
+      <div class="companion-role">Acompanhante feminina</div>
+      <div class="companion-traits">
+        <span class="trait">Acolhedora</span>
+        <span class="trait">Empática</span>
+        <span class="trait">Gentil</span>
+      </div>
+    </div>
+    <div class="companion-card" id="card-theo" onclick="selectCompanion('theo')">
+      <div class="companion-avatar">
+        <svg viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="45" cy="45" r="45" fill="#1a1035"/>
+          <ellipse cx="45" cy="26" rx="20" ry="11" fill="#2c1a0e"/>
+          <path d="M25 28 Q24 38 26 42" stroke="#2c1a0e" stroke-width="5" fill="none" stroke-linecap="round"/>
+          <path d="M65 28 Q66 38 64 42" stroke="#2c1a0e" stroke-width="5" fill="none" stroke-linecap="round"/>
+          <ellipse cx="45" cy="50" rx="19" ry="21" fill="#d4956a"/>
+          <rect x="28" y="58" width="34" height="14" rx="6" fill="#d4956a"/>
+          <ellipse cx="38" cy="47" rx="3.5" ry="4" fill="#1a1035"/>
+          <ellipse cx="52" cy="47" rx="3.5" ry="4" fill="#1a1035"/>
+          <circle cx="39.5" cy="45.5" r="1.2" fill="white"/>
+          <circle cx="53.5" cy="45.5" r="1.2" fill="white"/>
+          <path d="M34 41 Q38 39.5 42 41" stroke="#5c3010" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <path d="M48 41 Q52 39.5 56 41" stroke="#5c3010" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <path d="M39 58 Q45 63 51 58" stroke="#a0623a" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+          <ellipse cx="45" cy="66" rx="12" ry="4" fill="#5c3010" opacity="0.2"/>
+          <path d="M26 30 Q32 18 45 17 Q58 18 64 30" fill="#2c1a0e"/>
+        </svg>
+      </div>
+      <div class="companion-name">Theo</div>
+      <div class="companion-role">Acompanhante masculino</div>
+      <div class="companion-traits">
+        <span class="trait">Tranquilo</span>
+        <span class="trait">Direto</span>
+        <span class="trait">Firme</span>
+      </div>
+    </div>
+  </div>
+  <button class="btn-companion" id="btn-start" onclick="startChat()" disabled>Começar conversa →</button>
+  <div style="text-align:center;font-size:.67rem;color:var(--text-faint);padding:0 1.5rem 1.25rem;line-height:1.5">
+    Este app oferece apoio emocional com IA e não substitui acompanhamento psicológico profissional.<br>Em caso de crise, ligue <strong style="color:rgba(255,255,255,.4)">188</strong> (CVV).
+  </div>
+</div>
+
+<!-- ═══ CHAT ═══ -->
+<div id="chat-screen" class="screen">
+  <div class="chat-header">
+    <button class="back-btn" onclick="go('companion')">←</button>
+    <div class="chat-avatar-mini" id="chat-avatar-mini"></div>
+    <div class="chat-info">
+      <div class="chat-companion-name" id="chat-companion-name"></div>
+      <div class="chat-status"><span class="status-dot"></span>Online agora</div>
+    </div>
+    <div class="chat-topic-pill" id="chat-topic-pill"></div>
+  </div>
+  <div class="chat-messages" id="messages"></div>
+  <div class="disclaimer-chat">Não substitui psicólogo · Crise: 188 (CVV)</div>
+  <div class="chat-input-area">
+    <textarea class="chat-input" id="userInput" rows="1" placeholder="Escreva como você está se sentindo..."></textarea>
+    <button class="send-btn" onclick="sendMsg()">
+      <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+
+</div>
+<script>
+// ── CONFIGURAÇÃO HOTMART ──
+// IMPORTANTE: Substitua pela URL do seu produto na Hotmart
+const HOTMART_URL = 'https://pay.hotmart.com/SEU_PRODUTO_AQUI';
+// Após criar o produto na Hotmart, cole o link de checkout acima
+
+const AVATARS = {
+  luna:`<svg viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg"><circle cx="45" cy="45" r="45" fill="#2d1b69"/><ellipse cx="45" cy="28" rx="22" ry="14" fill="#1a0a2e"/><path d="M23 30 Q20 50 22 65 Q26 58 28 52" fill="#1a0a2e"/><path d="M67 30 Q70 50 68 65 Q64 58 62 52" fill="#1a0a2e"/><path d="M28 55 Q26 68 30 75" stroke="#1a0a2e" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M62 55 Q64 68 60 75" stroke="#1a0a2e" stroke-width="6" fill="none" stroke-linecap="round"/><ellipse cx="45" cy="48" rx="18" ry="20" fill="#f4c5a0"/><ellipse cx="38" cy="45" rx="3.5" ry="4" fill="#2d1b69"/><ellipse cx="52" cy="45" rx="3.5" ry="4" fill="#2d1b69"/><circle cx="39.5" cy="43.5" r="1.2" fill="white"/><circle cx="53.5" cy="43.5" r="1.2" fill="white"/><path d="M34 40 Q38 38 42 40" stroke="#7c4a2a" stroke-width="1.2" fill="none" stroke-linecap="round"/><path d="M48 40 Q52 38 56 40" stroke="#7c4a2a" stroke-width="1.2" fill="none" stroke-linecap="round"/><path d="M39 55 Q45 60 51 55" stroke="#c07850" stroke-width="1.8" fill="none" stroke-linecap="round"/><ellipse cx="34" cy="52" rx="5" ry="3" fill="#e879f9" opacity="0.25"/><ellipse cx="56" cy="52" rx="5" ry="3" fill="#e879f9" opacity="0.25"/><path d="M27 32 Q32 22 45 20 Q58 22 63 32" fill="#1a0a2e"/><circle cx="27" cy="52" r="3" fill="#c084fc" opacity="0.9"/><circle cx="63" cy="52" r="3" fill="#c084fc" opacity="0.9"/></svg>`,
+  theo:`<svg viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg"><circle cx="45" cy="45" r="45" fill="#1a1035"/><ellipse cx="45" cy="26" rx="20" ry="11" fill="#2c1a0e"/><path d="M25 28 Q24 38 26 42" stroke="#2c1a0e" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M65 28 Q66 38 64 42" stroke="#2c1a0e" stroke-width="5" fill="none" stroke-linecap="round"/><ellipse cx="45" cy="50" rx="19" ry="21" fill="#d4956a"/><rect x="28" y="58" width="34" height="14" rx="6" fill="#d4956a"/><ellipse cx="38" cy="47" rx="3.5" ry="4" fill="#1a1035"/><ellipse cx="52" cy="47" rx="3.5" ry="4" fill="#1a1035"/><circle cx="39.5" cy="45.5" r="1.2" fill="white"/><circle cx="53.5" cy="45.5" r="1.2" fill="white"/><path d="M34 41 Q38 39.5 42 41" stroke="#5c3010" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M48 41 Q52 39.5 56 41" stroke="#5c3010" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M39 58 Q45 63 51 58" stroke="#a0623a" stroke-width="1.8" fill="none" stroke-linecap="round"/><ellipse cx="45" cy="66" rx="12" ry="4" fill="#5c3010" opacity="0.2"/><path d="M26 30 Q32 18 45 17 Q58 18 64 30" fill="#2c1a0e"/></svg>`
+};
+
+const PERSONALITIES = {
+  luna:{name:'Luna',style:'feminina, acolhedora e empática. Use linguagem calorosa e gentil, como uma amiga próxima. Ocasionalmente use expressões como "querida". Valide sempre as emoções.'},
+  theo:{name:'Theo',style:'masculino, tranquilo e firme. Use linguagem direta e segura, como um amigo de confiança. Seja prático mas empático.'}
+};
+
+const FALLBACKS = [
+  "Estou aqui com você. Me conta mais sobre como está se sentindo.",
+  "Entendo que não é fácil. O que está pesando mais agora?",
+  "Obrigado por compartilhar isso. Como isso tem afetado seu dia a dia?",
+  "Você não está sozinho nesse momento. O que você precisaria agora?",
+  "Isso faz sentido sentir assim. Há quanto tempo você está carregando isso?",
+  "Sua coragem em falar sobre isso já é um grande passo. O que você acha que está por trás desse sentimento?",
+  "Percebo que isso é muito importante para você. Pode me contar mais detalhes?",
+  "Às vezes colocar os sentimentos em palavras já ajuda. Como você se sente agora?"
+];
+
+let fallbackIndex=0, currentTopic='', currentTopicIcon='', currentTopicName='';
+let currentCompanion='', msgs=[];
+
+function go(screen){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(screen).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function selectTopic(topic,icon,name){
+  currentTopic=topic; currentTopicIcon=icon; currentTopicName=name;
+  go('companion');
+}
+
+function selectCompanion(id){
+  currentCompanion=id;
+  document.querySelectorAll('.companion-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('card-'+id).classList.add('selected');
+  document.getElementById('btn-start').disabled=false;
+}
+
+function goToCheckout(){
+  // Se Hotmart configurado, abre checkout; senão vai para companion
+  if(HOTMART_URL && HOTMART_URL.indexOf('SEU_PRODUTO') === -1){
+    window.open(HOTMART_URL,'_blank');
+  } else {
+    go('companion');
+  }
+}
+
+function startChat(){
+  if(!currentCompanion) return;
+  const p=PERSONALITIES[currentCompanion];
+  const L=LANG[currentLang];
+  document.getElementById('chat-avatar-mini').innerHTML=AVATARS[currentCompanion];
+  document.getElementById('chat-companion-name').textContent=p.name;
+  document.getElementById('chat-topic-pill').textContent=currentTopicIcon+' '+currentTopicName;
+  const greeting=currentCompanion==='luna'
+    ? L.lunaGreeting(currentTopicName.toLowerCase())
+    : L.theoGreeting(currentTopicName.toLowerCase());
+  msgs=[{role:'assistant',content:greeting}];
+  document.getElementById('messages').innerHTML='';
+  addMsg('ai',greeting);
+  go('chat-screen');
+  fallbackIndex=0;
+}
+
+function addMsg(role,text){
+  const box=document.getElementById('messages');
+  const d=document.createElement('div');
+  d.className='msg '+role; d.textContent=text;
+  box.appendChild(d); box.scrollTop=box.scrollHeight;
+}
+function showTyping(){
+  const box=document.getElementById('messages');
+  const d=document.createElement('div');
+  d.className='msg typing'; d.id='typing';
+  d.innerHTML='<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+  box.appendChild(d); box.scrollTop=box.scrollHeight;
+}
+function removeTyping(){const t=document.getElementById('typing');if(t)t.remove();}
+
+function getFallback(){
+  const r=FALLBACKS[fallbackIndex%FALLBACKS.length];
+  fallbackIndex++;
+  const extras=[' Pode me contar mais?',' Estou aqui, pode continuar.',' Como você se sente agora?',''];
+  return r+(Math.random()>.6?extras[Math.floor(Math.random()*extras.length)]:'');
+}
+
+async function sendMsg(){
+  const inp=document.getElementById('userInput');
+  const text=inp.value.trim();
+  if(!text) return;
+  inp.value=''; inp.style.height='auto';
+  addMsg('user',text);
+  msgs.push({role:'user',content:text});
+  showTyping();
+  const L=LANG[currentLang];
+  let reply='';
+  try{
+    const p=PERSONALITIES[currentCompanion];
+    const system=L.companionSystem(p.name, p.style, currentTopicName);
+    const res=await fetch('/.netlify/functions/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system,messages:msgs})
+    });
+    if(!res.ok) throw new Error('err');
+    const data=await res.json();
+    reply=data.content.map(i=>i.text||'').join('');
+  } catch(e){
+    const fb=L.fallbacks;
+    reply=fb[fallbackIndex%fb.length];
+    fallbackIndex++;
+  }
+  msgs.push({role:'assistant',content:reply});
+  removeTyping(); addMsg('ai',reply);
+}
+
+// Compartilhamento
+function shareApp(platform){
+  const url=encodeURIComponent(window.location.href);
+  const text=encodeURIComponent('Conheça o Serenê — apoio emocional com IA, disponível 24h. 3 dias grátis! 💜');
+  const urls={
+    whatsapp:`https://api.whatsapp.com/send?text=${text}%20${url}`,
+    instagram:`https://www.instagram.com/`,
+    facebook:`https://www.facebook.com/sharer/sharer.php?u=${url}`,
+    tiktok:`https://www.tiktok.com/`
+  };
+  if(platform==='instagram'||platform==='tiktok'){
+    // Instagram e TikTok não têm URL de compartilhamento direto — copia o link
+    navigator.clipboard.writeText(window.location.href).then(()=>{
+      alert('Link copiado! Cole no seu '+( platform==='instagram'?'Instagram':'TikTok')+' para compartilhar 💜');
+    }).catch(()=>{
+      alert('Copie este link para compartilhar:\n'+window.location.href);
+    });
+    return;
+  }
+  window.open(urls[platform],'_blank','width=600,height=400');
+}
+
+// ── TRADUÇÕES ──
+const LANG = {
+  pt:{
+    tagline:'Apoio emocional com IA',
+    shareTop:'Acesso rápido · Sigilo total',
+    shareSub:'Sua privacidade protegida',
+    shareLabel:'compartilhe',
+    title:'Você não\nprecisa\ncarregar\nsozinho',
+    sub:'Escolha um tema e converse com seu acompanhante.',
+    hint:'toque em um tema',
+    trialBadge:'3 dias completamente grátis',
+    priceAfter:'nos primeiros 3 dias, depois',
+    pricePeriod:'/mês',
+    bullet1:'Acesso ilimitado', bullet2:'Cancele quando quiser', bullet3:'Sem compromisso',
+    priceNote:'Sem cobrança nos 3 dias de teste · Assina automaticamente após o período',
+    btnCta:'Começar grátis agora →',
+    proofText:'+4.800 pessoas já encontraram apoio aqui',
+    companionTitle:'Escolha seu acompanhante',
+    companionSub:'Escolha quem te deixa mais à vontade',
+    lunaRole:'Acompanhante feminina', theoRole:'Acompanhante masculino',
+    btnStart:'Começar conversa →',
+    disclaimer:'Este app oferece apoio emocional com IA e não substitui acompanhamento psicológico profissional.',
+    crisis:'Em caso de crise, ligue',
+    inputPlaceholder:'Escreva como você está se sentindo...',
+    online:'Online agora',
+    topics:[
+      {key:'ansiedade',icon:'😮‍💨',name:'Ansiedade e estresse',desc:'Pensamentos acelerados, tensão'},
+      {key:'relacionamentos',icon:'💔',name:'Relacionamentos e solidão',desc:'Conflitos, distância, isolamento'},
+      {key:'autoestima',icon:'🪞',name:'Autoestima e insegurança',desc:'Dúvidas, comparações, valor próprio'},
+      {key:'burnout',icon:'🔋',name:'Burnout emocional',desc:'Exaustão, falta de energia, vazio'},
+      {key:'decisoes',icon:'🧭',name:'Decisões difíceis',desc:'Dúvidas, escolhas, mudanças de vida'}
+    ],
+    lunaGreeting:(t)=>`Oi! Que bom te ver aqui. Estou aqui para te ouvir sobre ${t}. Me conta, como você está se sentindo?`,
+    theoGreeting:(t)=>`Olá! Pode falar. Estou aqui para conversar sobre ${t}. O que está acontecendo?`,
+    companionSystem:(name,style,topic)=>`Você é ${name}, um acompanhante emocional com IA de personalidade ${style}\nO usuário escolheu conversar sobre: "${topic}".\nResponda sempre em português brasileiro, de forma concisa (máximo 3 frases).\nFaça perguntas abertas. Valide as emoções antes de oferecer perspectivas.\nNUNCA se passe por psicólogo. Se houver risco à vida, mencione o CVV (188).`,
+    fallbacks:['Estou aqui com você. Me conta mais sobre como está se sentindo.','Entendo que não é fácil. O que está pesando mais agora?','Como isso tem afetado seu dia a dia?','Você não está sozinho. O que você precisaria agora?','Há quanto tempo você está carregando isso?','O que você acha que está por trás desse sentimento?','Pode me contar mais detalhes?','Como você se sente agora que falou sobre isso?']
+  },
+  en:{
+    tagline:'AI Emotional Support',
+    shareTop:'Quick access · Total privacy',
+    shareSub:'Your privacy protected',
+    shareLabel:'share',
+    title:"You don't\nhave to\ncarry this\nalone",
+    sub:'Choose a topic and talk to your companion.',
+    hint:'tap a topic',
+    trialBadge:'3 days completely free',
+    priceAfter:'for the first 3 days, then',
+    pricePeriod:'/mo',
+    bullet1:'Unlimited access', bullet2:'Cancel anytime', bullet3:'No commitment',
+    priceNote:'No charge during trial · Auto-renews after the period',
+    btnCta:'Start free now →',
+    proofText:'+4,800 people already found support here',
+    companionTitle:'Choose your companion',
+    companionSub:'Choose who makes you feel most comfortable',
+    lunaRole:'Female companion', theoRole:'Male companion',
+    btnStart:'Start conversation →',
+    disclaimer:'This app offers AI emotional support and does not replace professional psychological care.',
+    crisis:'In crisis, call',
+    inputPlaceholder:'Write how you are feeling...',
+    online:'Online now',
+    topics:[
+      {key:'anxiety',icon:'😮‍💨',name:'Anxiety & stress',desc:'Racing thoughts, tension'},
+      {key:'relationships',icon:'💔',name:'Relationships & loneliness',desc:'Conflict, distance, isolation'},
+      {key:'selfesteem',icon:'🪞',name:'Self-esteem & insecurity',desc:'Doubts, comparisons, self-worth'},
+      {key:'burnout',icon:'🔋',name:'Emotional burnout',desc:'Exhaustion, lack of energy, emptiness'},
+      {key:'decisions',icon:'🧭',name:'Difficult decisions',desc:'Doubts, choices, life changes'}
+    ],
+    lunaGreeting:(t)=>`Hi! I'm so glad you're here. I'm here to listen about ${t}. Tell me, how are you feeling?`,
+    theoGreeting:(t)=>`Hey. You can talk to me. I'm here for ${t}. What's going on?`,
+    companionSystem:(name,style,topic)=>`You are ${name}, an AI emotional support companion with a ${style} personality.\nThe user chose to talk about: "${topic}".\nAlways respond in English, concisely (max 3 sentences).\nAsk open-ended questions. Validate emotions before offering perspective.\nNEVER pose as a therapist or psychologist. If there is risk to life, mention crisis lines.`,
+    fallbacks:["I'm here with you. Tell me more about how you're feeling.","I understand this is hard. What weighs on you most right now?","How has this been affecting your day-to-day life?","You are not alone in this. What do you need right now?","How long have you been carrying this?","What do you think is behind this feeling?","Can you tell me more?","How do you feel now that you've talked about it?"]
+  },
+  es:{
+    tagline:'Apoyo emocional con IA',
+    shareTop:'Acceso rápido · Total privacidad',
+    shareSub:'Tu privacidad protegida',
+    shareLabel:'compartir',
+    title:'No tienes\nque cargar\nesto\nsolo',
+    sub:'Elige un tema y habla con tu acompañante.',
+    hint:'toca un tema',
+    trialBadge:'3 días completamente gratis',
+    priceAfter:'los primeros 3 días, luego',
+    pricePeriod:'/mes',
+    bullet1:'Acceso ilimitado', bullet2:'Cancela cuando quieras', bullet3:'Sin compromiso',
+    priceNote:'Sin cobro durante la prueba · Se renueva automáticamente',
+    btnCta:'Empezar gratis ahora →',
+    proofText:'+4.800 personas ya encontraron apoyo aquí',
+    companionTitle:'Elige tu acompañante',
+    companionSub:'Elige quién te hace sentir más cómodo',
+    lunaRole:'Acompañante femenina', theoRole:'Acompañante masculino',
+    btnStart:'Iniciar conversación →',
+    disclaimer:'Esta app ofrece apoyo emocional con IA y no reemplaza la atención psicológica profesional.',
+    crisis:'En crisis, llama al',
+    inputPlaceholder:'Escribe cómo te estás sintiendo...',
+    online:'En línea ahora',
+    topics:[
+      {key:'ansiedad',icon:'😮‍💨',name:'Ansiedad y estrés',desc:'Pensamientos acelerados, tensión'},
+      {key:'relaciones',icon:'💔',name:'Relaciones y soledad',desc:'Conflictos, distancia, aislamiento'},
+      {key:'autoestima',icon:'🪞',name:'Autoestima e inseguridad',desc:'Dudas, comparaciones, valor propio'},
+      {key:'burnout',icon:'🔋',name:'Burnout emocional',desc:'Agotamiento, falta de energía, vacío'},
+      {key:'decisiones',icon:'🧭',name:'Decisiones difíciles',desc:'Dudas, elecciones, cambios de vida'}
+    ],
+    lunaGreeting:(t)=>`¡Hola! Me alegra que estés aquí. Estoy aquí para escucharte sobre ${t}. Cuéntame, ¿cómo te sientes?`,
+    theoGreeting:(t)=>`Hola. Puedes hablar. Estoy aquí para hablar sobre ${t}. ¿Qué está pasando?`,
+    companionSystem:(name,style,topic)=>`Eres ${name}, un acompañante emocional IA con personalidad ${style}.\nEl usuario eligió hablar sobre: "${topic}".\nResponde siempre en español, de forma concisa (máximo 3 frases).\nHaz preguntas abiertas. Valida las emociones antes de ofrecer perspectivas.\nNUNCA te hagas pasar por psicólogo. Si hay riesgo vital, menciona líneas de crisis.`,
+    fallbacks:['Estoy aquí contigo. Cuéntame más sobre cómo te sientes.','Entiendo que no es fácil. ¿Qué es lo que más te pesa ahora mismo?','¿Cómo ha afectado esto a tu día a día?','No estás solo en esto. ¿Qué necesitarías ahora?','¿Cuánto tiempo llevas cargando con esto?','¿Qué crees que hay detrás de ese sentimiento?','¿Puedes contarme más detalles?','¿Cómo te sientes ahora que has hablado de ello?']
+  },
+  fr:{
+    tagline:'Soutien émotionnel par IA',
+    shareTop:'Accès rapide · Confidentialité totale',
+    shareSub:'Votre vie privée protégée',
+    shareLabel:'partager',
+    title:"Vous n'avez\npas à porter\nça\nseul",
+    sub:'Choisissez un sujet et parlez à votre accompagnateur.',
+    hint:'touchez un sujet',
+    trialBadge:'3 jours entièrement gratuits',
+    priceAfter:'les 3 premiers jours, puis',
+    pricePeriod:'/mois',
+    bullet1:'Accès illimité', bullet2:'Annulez quand vous voulez', bullet3:'Sans engagement',
+    priceNote:'Aucun frais pendant l\'essai · Renouvellement automatique après',
+    btnCta:'Commencer gratuitement →',
+    proofText:'+4 800 personnes ont déjà trouvé du soutien ici',
+    companionTitle:'Choisissez votre accompagnateur',
+    companionSub:'Choisissez qui vous met le plus à l\'aise',
+    lunaRole:'Accompagnatrice', theoRole:'Accompagnateur',
+    btnStart:'Commencer la conversation →',
+    disclaimer:'Cette app offre un soutien émotionnel IA et ne remplace pas un suivi psychologique professionnel.',
+    crisis:'En crise, appelez le',
+    inputPlaceholder:'Écrivez comment vous vous sentez...',
+    online:'En ligne maintenant',
+    topics:[
+      {key:'anxiete',icon:'😮‍💨',name:'Anxiété & stress',desc:'Pensées rapides, tension'},
+      {key:'relations',icon:'💔',name:'Relations & solitude',desc:'Conflits, distance, isolement'},
+      {key:'estime',icon:'🪞',name:'Estime de soi',desc:'Doutes, comparaisons, valeur personnelle'},
+      {key:'burnout',icon:'🔋',name:'Burnout émotionnel',desc:'Épuisement, manque d\'énergie, vide'},
+      {key:'decisions',icon:'🧭',name:'Décisions difficiles',desc:'Doutes, choix, changements de vie'}
+    ],
+    lunaGreeting:(t)=>`Bonjour ! Je suis contente que vous soyez là. Je suis ici pour vous écouter sur ${t}. Comment vous sentez-vous ?`,
+    theoGreeting:(t)=>`Bonjour. Vous pouvez parler. Je suis là pour ${t}. Que se passe-t-il ?`,
+    companionSystem:(name,style,topic)=>`Vous êtes ${name}, un accompagnateur émotionnel IA avec une personnalité ${style}.\nL'utilisateur a choisi de parler de : "${topic}".\nRépondez toujours en français, de manière concise (max 3 phrases).\nPosez des questions ouvertes. Validez les émotions avant d'offrir des perspectives.\nNe vous faites JAMAIS passer pour un psychologue. En cas de risque vital, mentionnez les lignes de crise.`,
+    fallbacks:['Je suis là avec vous. Parlez-moi davantage de ce que vous ressentez.','Je comprends que ce n\'est pas facile. Qu\'est-ce qui vous pèse le plus ?','Comment cela affecte-t-il votre quotidien ?','Vous n\'êtes pas seul(e). De quoi auriez-vous besoin maintenant ?','Depuis combien de temps portez-vous cela ?','Que pensez-vous qui se cache derrière ce sentiment ?','Pouvez-vous m\'en dire plus ?','Comment vous sentez-vous maintenant que vous en avez parlé ?']
+  },
+  de:{
+    tagline:'KI-Emotionale Unterstützung',
+    shareTop:'Schneller Zugang · Totale Privatsphäre',
+    shareSub:'Ihre Privatsphäre geschützt',
+    shareLabel:'teilen',
+    title:'Du musst\ndas nicht\nalleine\ntragen',
+    sub:'Wähle ein Thema und sprich mit deinem Begleiter.',
+    hint:'Thema antippen',
+    trialBadge:'3 Tage komplett kostenlos',
+    priceAfter:'die ersten 3 Tage, dann',
+    pricePeriod:'/Monat',
+    bullet1:'Unbegrenzter Zugang', bullet2:'Jederzeit kündbar', bullet3:'Kein Engagement',
+    priceNote:'Keine Kosten während des Tests · Automatische Verlängerung danach',
+    btnCta:'Jetzt kostenlos starten →',
+    proofText:'+4.800 Menschen haben hier bereits Unterstützung gefunden',
+    companionTitle:'Wähle deinen Begleiter',
+    companionSub:'Wähle, wer dich am meisten entspannt',
+    lunaRole:'Weibliche Begleiterin', theoRole:'Männlicher Begleiter',
+    btnStart:'Gespräch starten →',
+    disclaimer:'Diese App bietet KI-emotionale Unterstützung und ersetzt keine professionelle psychologische Betreuung.',
+    crisis:'In der Krise, ruf an:',
+    inputPlaceholder:'Schreibe, wie du dich fühlst...',
+    online:'Jetzt online',
+    topics:[
+      {key:'angst',icon:'😮‍💨',name:'Angst & Stress',desc:'Rasende Gedanken, Anspannung'},
+      {key:'beziehungen',icon:'💔',name:'Beziehungen & Einsamkeit',desc:'Konflikte, Distanz, Isolation'},
+      {key:'selbstwert',icon:'🪞',name:'Selbstwert & Unsicherheit',desc:'Zweifel, Vergleiche, Selbstwert'},
+      {key:'burnout',icon:'🔋',name:'Emotionales Burnout',desc:'Erschöpfung, Energiemangel, Leere'},
+      {key:'entscheidungen',icon:'🧭',name:'Schwierige Entscheidungen',desc:'Zweifel, Entscheidungen, Veränderungen'}
+    ],
+    lunaGreeting:(t)=>`Hallo! Schön, dass du hier bist. Ich bin hier, um dir bei ${t} zuzuhören. Wie fühlst du dich?`,
+    theoGreeting:(t)=>`Hey. Du kannst reden. Ich bin wegen ${t} hier. Was ist los?`,
+    companionSystem:(name,style,topic)=>`Du bist ${name}, ein KI-emotionaler Begleiter mit einer ${style} Persönlichkeit.\nDer Benutzer hat sich entschieden, über "${topic}" zu sprechen.\nAntworte immer auf Deutsch, prägnant (max. 3 Sätze).\nStelle offene Fragen. Validiere Emotionen bevor du Perspektiven anbietest.\nGib dich NIEMALS als Psychologe aus. Bei Lebensgefahr, erwähne Krisentelefone.`,
+    fallbacks:['Ich bin bei dir. Erzähl mir mehr darüber, wie du dich fühlst.','Ich verstehe, dass es nicht einfach ist. Was belastet dich gerade am meisten?','Wie hat das deinen Alltag beeinflusst?','Du bist nicht allein. Was würdest du jetzt brauchen?','Wie lange trägst du das schon mit dir?','Was denkst du, steckt hinter diesem Gefühl?','Kannst du mir mehr erzählen?','Wie fühlst du dich jetzt, nachdem du darüber gesprochen hast?']
+  }
+};
+
+let currentLang = 'pt';
+
+function setLang(lang){
+  currentLang = lang;
+  document.querySelectorAll('.lang-btn').forEach(b=>{
+    b.classList.toggle('active', b.textContent.toLowerCase().includes(lang));
+  });
+  const L = LANG[lang];
+  // share bar
+  document.querySelector('.share-tagline-top').textContent = L.shareTop;
+  document.querySelector('.share-tagline-sub').innerHTML = '🔒 ' + L.shareSub;
+  document.querySelector('.share-label').textContent = L.shareLabel;
+  // logo tagline
+  document.querySelector('.logo-tagline').textContent = L.tagline;
+  // home title
+  const parts = L.title.split('\n');
+  const titleEl = document.querySelector('.home-title');
+  titleEl.innerHTML = parts.slice(0,3).join('<br>')+'<br><span class="grad italic">'+parts[3]+'</span>';
+  // home sub & hint
+  document.querySelector('.home-sub').textContent = L.sub;
+  document.querySelector('.hint-text').textContent = L.hint;
+  // topics
+  const cards = document.querySelectorAll('.side-card');
+  L.topics.slice(0,4).forEach((t,i)=>{
+    cards[i].onclick = ()=>selectTopic(t.key, t.icon, t.name);
+    cards[i].querySelector('.side-name').textContent = t.name;
+    cards[i].querySelector('.side-desc').textContent = t.desc;
+  });
+  const fifth = document.querySelector('.fifth-card');
+  const ft = L.topics[4];
+  fifth.onclick = ()=>selectTopic(ft.key, ft.icon, ft.name);
+  fifth.querySelector('.side-name').textContent = ft.name;
+  fifth.querySelector('.side-desc').textContent = ft.desc;
+  // pricing
+  document.querySelector('.trial-badge').innerHTML = '<span>🎁</span> ' + L.trialBadge;
+  document.querySelector('.price-sep').textContent = L.priceAfter;
+  document.querySelector('.price-period').textContent = L.pricePeriod;
+  const bullets = document.querySelectorAll('.pricing-bullet');
+  bullets[0].textContent = L.bullet1;
+  bullets[1].textContent = L.bullet2;
+  bullets[2].textContent = L.bullet3;
+  document.querySelector('.pricing-note').textContent = L.priceNote;
+  document.querySelector('.btn-cta').textContent = L.btnCta;
+  document.querySelector('.proof-text').textContent = L.proofText;
+  // companion screen
+  document.querySelector('.bar-title').textContent = L.companionTitle;
+  document.querySelector('.companion-intro h2').textContent = L.companionTitle;
+  document.querySelector('.companion-intro p').textContent = L.companionSub;
+  document.querySelectorAll('.companion-role')[0].textContent = L.lunaRole;
+  document.querySelectorAll('.companion-role')[1].textContent = L.theoRole;
+  document.getElementById('btn-start').textContent = L.btnStart + (document.getElementById('btn-start').disabled ? '' : '');
+  // input placeholder
+  const inp = document.getElementById('userInput');
+  if(inp) inp.placeholder = L.inputPlaceholder;
+  // chat status
+  const statusEl = document.querySelector('.chat-status');
+  if(statusEl) statusEl.innerHTML = '<span class="status-dot"></span>' + L.online;
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  const inp=document.getElementById('userInput');
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}});
+  inp.addEventListener('input',()=>{inp.style.height='auto';inp.style.height=Math.min(inp.scrollHeight,120)+'px';});
+  detectCurrency();
+});
+
+// ── DETECÇÃO DE MOEDA POR PAÍS ──
+// Preços definidos por você para cada região (ajuste conforme quiser)
+const CURRENCY_CONFIG = {
+  BR: {symbol:'R$', price:27,  period:'mês',   free:'R$ 0',  locale:'pt-BR', currency:'BRL'},
+  US: {symbol:'$',  price:5,   period:'mo',    free:'$ 0',   locale:'en-US', currency:'USD'},
+  GB: {symbol:'£',  price:4,   period:'mo',    free:'£ 0',   locale:'en-GB', currency:'GBP'},
+  EU: {symbol:'€',  price:5,   period:'mês',   free:'€ 0',   locale:'pt-PT', currency:'EUR'},
+  DE: {symbol:'€',  price:5,   period:'Monat', free:'€ 0',   locale:'de-DE', currency:'EUR'},
+  FR: {symbol:'€',  price:5,   period:'mois',  free:'€ 0',   locale:'fr-FR', currency:'EUR'},
+  ES: {symbol:'€',  price:5,   period:'mes',   free:'€ 0',   locale:'es-ES', currency:'EUR'},
+  PT: {symbol:'€',  price:5,   period:'mês',   free:'€ 0',   locale:'pt-PT', currency:'EUR'},
+  AR: {symbol:'$',  price:4500,period:'mes',   free:'$ 0',   locale:'es-AR', currency:'ARS'},
+  MX: {symbol:'$',  price:95,  period:'mes',   free:'$ 0',   locale:'es-MX', currency:'MXN'},
+  CO: {symbol:'$',  price:18000,period:'mes',  free:'$ 0',   locale:'es-CO', currency:'COP'},
+  CL: {symbol:'$',  price:4500,period:'mes',   free:'$ 0',   locale:'es-CL', currency:'CLP'},
+  CA: {symbol:'CA$',price:7,   period:'mo',    free:'CA$ 0', locale:'en-CA', currency:'CAD'},
+  AU: {symbol:'A$', price:8,   period:'mo',    free:'A$ 0',  locale:'en-AU', currency:'AUD'},
+  JP: {symbol:'¥',  price:700, period:'月',    free:'¥ 0',   locale:'ja-JP', currency:'JPY'},
+  DEFAULT: {symbol:'$', price:5, period:'mo',  free:'$ 0',   locale:'en-US', currency:'USD'}
+};
+
+// Países da zona euro
+const EU_COUNTRIES = ['AT','BE','CY','EE','FI','GR','IE','IT','LT','LU','LV','MT','NL','SI','SK'];
+
+async function detectCurrency(){
+  try {
+    const res = await fetch('https://ipapi.co/json/');
+    const data = await res.json();
+    const code = data.country_code || 'DEFAULT';
+    let cfg = CURRENCY_CONFIG[code];
+    if(!cfg && EU_COUNTRIES.includes(code)) cfg = CURRENCY_CONFIG['EU'];
+    if(!cfg) cfg = CURRENCY_CONFIG['DEFAULT'];
+    applyCurrency(cfg, data.country_name || '');
+  } catch(e) {
+    // falha silenciosa — mantém preço em BRL padrão
+  }
+}
+
+function applyCurrency(cfg, countryName){
+  // Atualiza os elementos de preço na tela
+  const freeEl = document.querySelector('.price-free');
+  const paidEl = document.querySelector('.price-paid');
+  const periodEl = document.querySelector('.price-period');
+  if(freeEl) freeEl.textContent = cfg.free;
+  if(paidEl){
+    paidEl.innerHTML = cfg.symbol + cfg.price.toLocaleString() +
+      '<span class="price-period">/'+cfg.period+'</span>';
+  }
+  // Salva para uso no checkout
+  window.currentCurrency = cfg;
+  window.currentCountry = countryName;
+}
+</script>
+</body>
+</html>
