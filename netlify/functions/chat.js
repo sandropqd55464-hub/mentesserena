@@ -11,12 +11,14 @@ exports.handler = async (event) => {
       body: event.body
     });
     const data = await res.json();
+    console.log('API response:', JSON.stringify(data));
     return {
       statusCode: 200,
       headers: {'Access-Control-Allow-Origin':'*','Content-Type':'application/json'},
       body: JSON.stringify(data)
     };
   } catch(e) {
+    console.log('Error:', e.message);
     return {statusCode:500, body: JSON.stringify({error: e.message})};
   }
 };
