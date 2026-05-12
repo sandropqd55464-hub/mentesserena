@@ -644,9 +644,14 @@ async function sendMsg(){
   try{
     const p=PERSONALITIES[currentCompanion];
     const system=L.companionSystem(p.name, p.style, currentTopicName);
-    const res=await fetch('/.netlify/functions/chat',{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':'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',
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system,messages:msgs})
     });
     if(!res.ok) throw new Error('err');
