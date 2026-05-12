@@ -649,7 +649,7 @@ async function sendMsg(){
       headers:{
         'Content-Type':'application/json',
       },
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system,messages:msgs})
+      body:JSON.stringify({model:'claude-3-5-sonnet-20241022',max_tokens:1000,system,messages:msgs})
     });
     if(!res.ok) throw new Error('err');
     const data=await res.json();
