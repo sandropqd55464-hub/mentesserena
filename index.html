@@ -644,7 +644,7 @@ async function sendMsg(){
   try{
     const p=PERSONALITIES[currentCompanion];
     const system=L.companionSystem(p.name, p.style, currentTopicName);
-    const res=await fetch('/.netlify/functions/chat',{
+    const res=await fetch('https://serena-chat.sandropqd55464.workers.dev',{
       method:'POST',
       headers:{
         'Content-Type':'application/json',
